@@ -1,0 +1,23 @@
+name: Backend CI
+
+on:
+  push:
+    paths: [backend/**]
+  pull_request:
+    paths: [backend/**]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install deps
+        run: cd backend && pip install -r requirements.txt
+      - name: Syntax check
+        run: |
+          python -m py_compile backend/main.py
+          python -m py_compile backend/match.py
+          python -m py_compile backend/models.py

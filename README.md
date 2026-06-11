@@ -1,5 +1,8 @@
 # jack门
 
+[![Backend CI](https://github.com/ymania/jackmen/actions/workflows/backend.yml/badge.svg)](https://github.com/ymania/jackmen/actions)
+[![Frontend Deploy](https://github.com/ymania/jackmen/actions/workflows/deploy-frontend.yml/badge.svg)](https://github.com/ymania/jackmen/actions)
+
 > 新老互助破冰 — 基于性格问卷匹配的校园服务板块。
 > 目标：一键上线 i大工。
 
