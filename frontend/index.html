@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>jack门 — 新老互助破冰</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <!-- ====== 顶部导航 ====== -->
+    <div class="nav-bar" id="nav-bar" style="display:none;">
+        <span class="nav-back" onclick="goBack()">← 返回</span>
+        <span class="nav-title" id="nav-title"></span>
+        <span class="nav-notif" onclick="showNotifications()">🔔<span id="nav-badge" style="display:none;"></span></span>
+    </div>
+
+    <div class="container">
+
+        <!-- ====== 页面：首页 ====== -->
+        <div id="page-home" class="page active">
+            <div class="card" style="text-align:center; padding: 36px 24px;">
+                <div class="hero-icon">🚪</div>
+                <div class="hero-title">jack门</div>
+                <div class="hero-sub">新老互助破冰 · 基于性格匹配</div>
+            </div>
+
+            <p style="font-size:14px; color:var(--text-dim); margin-bottom:12px;">选择你的身份：</p>
+
+            <div class="role-card" data-role="freshman" onclick="selectRole('freshman')">
+                <div class="emoji">🌱</div>
+                <div class="title">我是新生</div>
+                <div class="desc">刚入学，想找靠谱的学长学姐带带路</div>
+            </div>
+
+            <div class="role-card" data-role="senior" onclick="selectRole('senior')">
+                <div class="emoji">🎓</div>
+                <div class="title">我是老生</div>
+                <div class="desc">想帮助新生，顺便认识有趣的人</div>
+            </div>
+
+            <button class="btn btn-primary" id="btn-start" disabled style="margin-top:16px; opacity:0.5;">开始答题 →</button>
+
+            <div style="margin-top:16px;" id="return-box" onclick="this.querySelector('input').focus()">
+                <p style="font-size:13px;color:var(--text-dim);margin-bottom:8px;">已提交过？输入你的 ID</p>
+                <div style="display:flex;gap:8px;">
+                    <input class="input-field" id="input-return-id" type="text" placeholder="8 位 ID" style="margin-bottom:0;flex:1;">
+                    <button class="btn btn-primary" style="width:auto;padding:12px 20px;" onclick="returnUser()">查看</button>
+                </div>
+            </div>
+
+            <div style="margin-top:12px;text-align:center;font-size:12px;color:var(--text-dim);">
+                <a href="#" onclick="showPage('privacy');return false;">隐私说明</a>
+            </div>
+        </div>
+
+        <!-- ====== 页面：隐私说明 ====== -->
+        <div id="page-privacy" class="page">
+            <div class="card">
+                <h2 style="font-size:18px;margin-bottom:16px;">隐私说明</h2>
+                <div style="font-size:14px;color:var(--text-dim);line-height:1.8;">
+                    <p><strong>我们收集什么</strong></p>
+                    <p>你的性格问卷答案（12 道选择题），以及你主动填写的联系方式（微信号/QQ）。</p>
+                    <br>
+                    <p><strong>数据怎么用</strong></p>
+                    <p>问卷答案仅用于匹配算法，不会公开。联系方式只在你匹配成功后展示给对方，不会出现在其他任何地方。</p>
+                    <br>
+                    <p><strong>数据存多久</strong></p>
+                    <p>数据存储在加密的云数据库中。你可以随时联系我们删除你的数据。</p>
+                    <br>
+                    <p><strong>关于 i大工</strong></p>
+                    <p>jack门 是 i大工 平台的板块之一，遵守大连理工大学信息化管理规定。</p>
+                </div>
+            </div>
+            <button class="btn btn-secondary" onclick="showPage('home')">← 返回首页</button>
+        </div>
+
+        <!-- ====== 页面：问卷 ====== -->
+        <div id="page-quiz" class="page">
+            <div class="card">
+                <div class="quiz-progress">
+                    第 <span id="q-current">1</span> / <span id="q-total">12</span> 题
+                    <div class="bar"><div class="fill" id="q-bar" style="width:0%"></div></div>
+                </div>
+                <div class="question-title" id="q-title"></div>
+                <div id="q-options"></div>
+            </div>
+            <div class="btn-group">
+                <button class="btn btn-secondary" id="btn-prev" style="display:none;">上一题</button>
+                <button class="btn btn-primary" id="btn-next" disabled>下一题</button>
+            </div>
+        </div>
+
+        <!-- ====== 页面：匹配结果 ====== -->
+        <div id="page-result" class="page">
+            <div id="result-content"></div>
+        </div>
+
+        <!-- ====== 页面：通知列表 ====== -->
+        <div id="page-notif" class="page">
+            <div class="card">
+                <div style="font-size:18px;font-weight:600;margin-bottom:16px;">🔔 通知</div>
+                <div id="notif-list">
+                    <div class="empty-state"><div style="color:var(--text-dim);">暂无通知</div></div>
+                </div>
+            </div>
+            <button class="btn btn-secondary" onclick="goBack()">← 返回</button>
+        </div>
+
+        <!-- ====== 页面：管理后台 ====== -->
+        <div id="page-admin" class="page">
+            <div class="card">
+                <div style="font-size:18px;font-weight:600;margin-bottom:16px;">📊 数据看板</div>
+                <div id="admin-stats">加载中...</div>
+            </div>
+            <button class="btn btn-secondary" onclick="showPage('home')">← 返回首页</button>
+        </div>
+
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
