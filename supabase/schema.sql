@@ -24,9 +24,22 @@ CREATE TABLE IF NOT EXISTS notifications (
 
 CREATE INDEX IF NOT EXISTS idx_notif_user ON notifications(user_id, read);
 
+-- 连接记录表（匹配后 connect/ignore 的状态追踪）
+CREATE TABLE IF NOT EXISTS connections (
+    id          SERIAL PRIMARY KEY,
+    user_id     TEXT NOT NULL REFERENCES users(id),
+    matched_id  TEXT NOT NULL REFERENCES users(id),
+    status      TEXT NOT NULL CHECK (status IN ('connected', 'ignored')),
+    created_at  TIMESTAMPTZ DEFAULT NOW(),
+    UNIQUE(user_id, matched_id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_conn_user ON connections(user_id, status);
+
 -- RLS 策略：允许匿名读写（校园小应用，无需登录）
 ALTER TABLE users ENABLE ROW LEVEL SECURITY;
 ALTER TABLE notifications ENABLE ROW LEVEL SECURITY;
+ALTER TABLE connections ENABLE ROW LEVEL SECURITY;
 
 -- users 表：所有人可读写
 CREATE POLICY "anon_can_read_users" ON users FOR SELECT USING (true);
@@ -36,3 +49,8 @@ CREATE POLICY "anon_can_insert_users" ON users FOR INSERT WITH CHECK (true);
 CREATE POLICY "anon_can_read_notifications" ON notifications FOR SELECT USING (true);
 CREATE POLICY "anon_can_insert_notifications" ON notifications FOR INSERT WITH CHECK (true);
 CREATE POLICY "anon_can_update_notifications" ON notifications FOR UPDATE USING (true);
+
+-- connections 表：所有人可读写
+CREATE POLICY "anon_can_read_connections" ON connections FOR SELECT USING (true);
+CREATE POLICY "anon_can_insert_connections" ON connections FOR INSERT WITH CHECK (true);
+CREATE POLICY "anon_can_update_connections" ON connections FOR UPDATE USING (true);

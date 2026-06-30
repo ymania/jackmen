@@ -3,6 +3,7 @@
  */
 
 const API = "http://localhost:8000";
+const MATCH_API = API + "/api/match";
 
 let role = null;
 let answers = new Array(12).fill(null);
@@ -187,7 +188,7 @@ async function submitQuiz() {
     document.getElementById('result-content').innerHTML = '<div class="loading"><div class="spinner"></div>正在匹配...</div>';
 
     try {
-        const res = await fetch(API + '/submit', {
+        const res = await fetch(API + '/api/match/submit', {
             method: 'POST', headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ role, answers, contact })
         });
@@ -203,7 +204,7 @@ async function submitQuiz() {
 // ---- 匹配加载 ----
 async function loadMatch(showNotif = false) {
     try {
-        const res = await fetch(API + '/match/' + userId);
+        const res = await fetch(API + '/api/match/' + userId);
         const data = await res.json();
         renderResult(data);
         if (showNotif && data.matches?.length > 0) {
@@ -216,7 +217,7 @@ async function loadMatch(showNotif = false) {
 
 // ---- 连接/忽略 ----
 async function connectMatch(matchedId) {
-    await fetch(API + '/match/' + userId + '/connect', {
+    await fetch(API + '/api/match/' + userId + '/connect', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ matched_id: matchedId })
     });
@@ -225,7 +226,7 @@ async function connectMatch(matchedId) {
 }
 
 async function ignoreMatch(matchedId) {
-    await fetch(API + '/match/' + userId + '/ignore', {
+    await fetch(API + '/api/match/' + userId + '/ignore', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ matched_id: matchedId })
     });
