@@ -2,141 +2,242 @@
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>校园平台</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>jack门 — 校园互助</title>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
 <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
 <style>
 :root {
-    --bg: #0a0f1a; --bg-card: #111827; --bg-input: #1a2235;
-    --accent: #00d4aa; --accent2: #6366f1; --text: #e2e8f0;
-    --text-dim: #94a3b8; --border: #1e293b; --radius: 12px;
-    --danger: #ef4444; --warn: #f59e0b;
+    --bg: #080c14;
+    --bg-card: rgba(255,255,255,0.03);
+    --bg-input: rgba(255,255,255,0.06);
+    --accent: #00d4aa;
+    --accent-glow: rgba(0,212,170,0.15);
+    --accent2: #6366f1;
+    --text: #f1f5f9;
+    --text-dim: #64748b;
+    --border: rgba(255,255,255,0.06);
+    --radius: 16px;
+    --radius-sm: 12px;
+    --danger: #ef4444;
+    --warn: #f59e0b;
 }
 * { margin:0; padding:0; box-sizing:border-box; }
-body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; display: flex; justify-content: center; padding: 20px; }
-.container { width: 100%; max-width: 520px; }
-.page { display: none; }
+body {
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "PingFang SC", "Microsoft YaHei", sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100dvh;
+    overflow-x: hidden;
+    -webkit-tap-highlight-color: transparent;
+    -webkit-font-smoothing: antialiased;
+}
+/* 装饰光晕 */
+body::before {
+    content: ''; position: fixed; top: -50%; left: -20%;
+    width: 140%; height: 100%;
+    background: radial-gradient(ellipse at 50% 0%, rgba(0,212,170,0.04) 0%, transparent 60%),
+                radial-gradient(ellipse at 80% 20%, rgba(99,102,241,0.03) 0%, transparent 50%);
+    pointer-events: none; z-index: 0;
+}
+.container { width: 100%; max-width: 480px; margin: 0 auto; padding: 0 20px 120px; position: relative; z-index: 1; }
+.page { display: none; animation: fadeUp .3s ease; }
 .page.active { display: block; }
+@keyframes fadeUp { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
 
 /* 卡片 */
-.card { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius); padding: 24px; margin-bottom: 14px; }
-.card-sm { padding: 16px; }
+.card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 24px;
+    margin-bottom: 12px;
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+}
+.card-sm { padding: 18px; }
 
 /* 按钮 */
-.btn { display: block; width: 100%; padding: 13px; border: none; border-radius: var(--radius); font-size: 15px; font-weight: 600; cursor: pointer; font-family: inherit; transition: opacity .15s, transform .1s; }
-.btn:active { transform: scale(0.98); }
-.btn-primary { background: var(--accent); color: #000; }
-.btn-primary:hover { opacity: 0.9; }
+.btn {
+    display: block; width: 100%; padding: 14px;
+    border: none; border-radius: var(--radius-sm);
+    font-size: 15px; font-weight: 600; cursor: pointer;
+    font-family: inherit; transition: all .2s; letter-spacing: 0.3px;
+}
+.btn:active { transform: scale(0.97); }
+.btn-primary { background: var(--accent); color: #000; box-shadow: 0 4px 20px var(--accent-glow); }
+.btn-primary:hover { box-shadow: 0 6px 30px rgba(0,212,170,0.25); }
 .btn-accent { background: var(--accent2); color: #fff; }
-.btn-accent:hover { opacity: 0.9; }
 .btn-secondary { background: transparent; border: 1px solid var(--border); color: var(--text); margin-top: 8px; }
-.btn-sm { display: inline-block; width: auto; padding: 8px 16px; font-size: 13px; }
+.btn-sm { display: inline-block; width: auto; padding: 8px 18px; font-size: 13px; border-radius: 99px; }
 .btn-danger { background: var(--danger); color: #fff; }
 
 /* 输入 */
 .input, .select, .textarea {
-    width: 100%; padding: 11px 14px; background: var(--bg-input); border: 1px solid var(--border);
-    border-radius: 8px; color: var(--text); font-size: 14px; font-family: inherit; margin-bottom: 10px;
+    width: 100%; padding: 13px 16px;
+    background: var(--bg-input); border: 1px solid var(--border);
+    border-radius: var(--radius-sm); color: var(--text);
+    font-size: 15px; font-family: inherit; margin-bottom: 10px;
+    transition: border-color .2s;
 }
 .input:focus, .select:focus, .textarea:focus { outline: none; border-color: var(--accent); }
 .textarea { min-height: 100px; resize: vertical; }
-.select { appearance: none; }
+.select { appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%2364748b'%3E%3Cpath d='M6 8L1 3h10z'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 14px center; padding-right: 36px; }
 
-/* 首页 */
-.hero { text-align: center; padding: 40px 24px; }
-.hero h1 { font-size: 28px; font-weight: 900; margin-bottom: 6px; }
-.hero .sub { color: var(--text-dim); font-size: 14px; margin-bottom: 28px; }
-.entrance { display: flex; flex-direction: column; gap: 10px; }
-.entrance-card {
-    background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius);
-    padding: 22px; cursor: pointer; transition: border-color .2s; text-decoration: none; color: inherit;
+/* ─── 首页 Hero ─── */
+.hero {
+    text-align: center; padding: 48px 8px 36px;
+    position: relative;
 }
-.entrance-card:hover { border-color: var(--accent); }
-.entrance-card .icon { font-size: 30px; margin-bottom: 6px; }
-.entrance-card .title { font-size: 17px; font-weight: 700; }
-.entrance-card .desc { font-size: 13px; color: var(--text-dim); margin-top: 2px; }
+.hero-logo {
+    font-size: 56px; margin-bottom: 12px;
+    animation: float 3s ease-in-out infinite;
+    display: inline-block;
+}
+@keyframes float { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-6px); } }
+.hero h1 { font-size: 32px; font-weight: 900; letter-spacing: -0.5px; }
+.hero .brand-accent { color: var(--accent); }
+.hero .sub { color: var(--text-dim); font-size: 14px; margin-top: 6px; margin-bottom: 0; }
+
+/* ─── 入口卡片 ─── */
+.entrance { display: flex; flex-direction: column; gap: 12px; margin-top: 8px; }
+.entrance-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 24px 20px;
+    cursor: pointer;
+    transition: all .25s;
+    position: relative; overflow: hidden;
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+}
+.entrance-card::after {
+    content: ''; position: absolute; top: 0; right: 0;
+    width: 120px; height: 120px;
+    border-radius: 50%;
+    transform: translate(40px, -40px);
+    transition: all .3s;
+}
+.entrance-card:nth-child(1)::after { background: rgba(0,212,170,0.04); }
+.entrance-card:nth-child(2)::after { background: rgba(99,102,241,0.04); }
+.entrance-card:active { transform: scale(0.98); border-color: var(--accent); }
+.entrance-card .e-icon { font-size: 36px; margin-bottom: 10px; display: block; }
+.entrance-card .e-title { font-size: 18px; font-weight: 700; display: flex; align-items: center; gap: 8px; }
+.entrance-card .e-badge {
+    font-size: 10px; padding: 2px 8px; border-radius: 99px;
+    font-weight: 600; letter-spacing: 0.5px;
+}
+.entrance-card:nth-child(1) .e-badge { background: rgba(0,212,170,0.15); color: var(--accent); }
+.entrance-card:nth-child(2) .e-badge { background: rgba(99,102,241,0.15); color: #a5b4fc; }
+.entrance-card .e-desc { font-size: 13px; color: var(--text-dim); margin-top: 6px; line-height: 1.5; }
 
 /* 标签 */
-.tag { display: inline-block; font-size: 11px; padding: 3px 9px; border-radius: 999px; margin: 0 3px 3px 0; font-weight: 600; }
-.tag-green { background: #0d2b22; color: var(--accent); }
-.tag-purple { background: #1e1b4b; color: #a5b4fc; }
-.tag-orange { background: #2d1b0e; color: var(--warn); }
+.tag { display: inline-block; font-size: 11px; padding: 3px 10px; border-radius: 99px; margin: 0 4px 4px 0; font-weight: 600; }
+.tag-green { background: rgba(0,212,170,0.12); color: var(--accent); }
+.tag-purple { background: rgba(99,102,241,0.12); color: #a5b4fc; }
+.tag-orange { background: rgba(245,158,11,0.12); color: var(--warn); }
 
 /* 选项按钮 */
 .option-btn {
-    display: block; width: 100%; padding: 12px 14px; margin-bottom: 8px;
-    background: var(--bg-input); border: 1px solid var(--border); border-radius: 8px;
-    color: var(--text); text-align: left; font-size: 14px; cursor: pointer; transition: border-color .15s;
+    display: block; width: 100%; padding: 14px 16px; margin-bottom: 8px;
+    background: var(--bg-input); border: 1px solid var(--border); border-radius: var(--radius-sm);
+    color: var(--text); text-align: left; font-size: 14px; cursor: pointer; transition: all .15s;
 }
-.option-btn:hover { border-color: var(--accent); }
-.option-btn.selected { border-color: var(--accent); background: #0d2b22; }
+.option-btn:active { border-color: var(--accent); background: rgba(0,212,170,0.08); }
+.option-btn.selected { border-color: var(--accent); background: rgba(0,212,170,0.1); }
 
 /* Toast */
 .toast {
-    position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%);
-    background: #0f172a; color: #fff; padding: 10px 22px; border-radius: 999px;
-    font-size: 13px; opacity: 0; transition: opacity .3s; z-index: 999; pointer-events: none;
-    border: 1px solid var(--border);
+    position: fixed; bottom: 32px; left: 50%; transform: translateX(-50%);
+    background: rgba(15,23,42,0.95); color: #fff; padding: 12px 24px;
+    border-radius: 99px; font-size: 13px; opacity: 0; transition: opacity .3s;
+    z-index: 999; pointer-events: none; border: 1px solid var(--border);
+    backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
 }
 .toast.show { opacity: 1; }
 .toast.success { border-color: var(--accent); color: var(--accent); }
 .toast.error { border-color: var(--danger); color: var(--danger); }
 
 /* 导航 */
-.nav-bar { display: flex; align-items: center; justify-content: space-between; padding: 12px 0; margin-bottom: 14px; }
-.nav-back { cursor: pointer; color: var(--text-dim); font-size: 14px; }
-.nav-title { font-weight: 700; font-size: 15px; }
-.nav-action { cursor: pointer; color: var(--accent); font-size: 13px; font-weight: 600; }
+.nav-bar { display: flex; align-items: center; justify-content: space-between; padding: 16px 0 8px; }
+.nav-back { cursor: pointer; color: var(--text-dim); font-size: 14px; padding: 8px 0; }
+.nav-title { font-weight: 700; font-size: 16px; }
+.nav-action { cursor: pointer; color: var(--accent); font-size: 13px; font-weight: 600; padding: 8px 0; }
 
 /* 加载 */
 .spinner { display: inline-block; width: 20px; height: 20px; border: 2px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: spin .6s linear infinite; margin-right: 8px; vertical-align: middle; }
 @keyframes spin { to { transform: rotate(360deg); } }
-.empty { text-align: center; padding: 36px 20px; color: var(--text-dim); }
+.empty { text-align: center; padding: 48px 20px; color: var(--text-dim); }
 
 /* 题目卡片 */
-.problem-card { border: 1px solid var(--border); border-radius: var(--radius); padding: 20px; margin-bottom: 12px; }
-.problem-card h3 { font-size: 16px; margin: 8px 0; }
+.problem-card { border: 1px solid var(--border); border-radius: var(--radius); padding: 20px; margin-bottom: 12px; background: var(--bg-card); }
+.problem-card h3 { font-size: 16px; margin: 10px 0; line-height: 1.4; }
 .problem-card .katex { font-size: 1.1em; }
-.problem-content { margin: 10px 0; color: var(--text-dim); line-height: 1.9; }
-.problem-content .katex-display { margin: 12px 0; }
+.problem-content { margin: 12px 0; color: var(--text-dim); line-height: 2; font-size: 15px; }
+.problem-content .katex-display { margin: 14px 0; }
 
 /* 导入页 */
 .import-section { margin-bottom: 16px; }
-.import-section h3 { font-size: 15px; margin-bottom: 10px; }
+.import-section h3 { font-size: 14px; margin-bottom: 10px; color: var(--text-dim); font-weight: 500; }
 .field-row { display: flex; gap: 8px; }
 .field-row > * { flex: 1; }
+
+/* ─── 匹配结果 ─── */
+.match-header { text-align: center; padding: 20px 0 8px; }
+.match-header .big-emoji { font-size: 48px; display: block; margin-bottom: 8px; }
+.match-medal { font-size: 14px; display: inline-flex; align-items: center; gap: 6px; }
 </style>
 </head>
 <body>
 <div class="container">
 
-<!-- Toast -->
 <div class="toast" id="toast"></div>
 
-<!-- 导航 -->
 <div class="nav-bar" id="nav-bar" style="display:none;">
     <span class="nav-back" onclick="goBack()">← 返回</span>
     <span class="nav-title" id="nav-title"></span>
     <span class="nav-action" id="nav-action"></span>
 </div>
 
-<!-- ==================== 首页 ==================== -->
+<!-- ══════════════════════ 首页 ══════════════════════ -->
 <div class="page active" id="page-home">
-    <div class="hero"><h1>🏫 校园平台</h1><p class="sub">匹配互助 · 刷题训练</p></div>
+    <div class="hero">
+        <div class="hero-logo">🚪</div>
+        <h1>jack<span class="brand-accent">门</span></h1>
+        <p class="sub">大工校园互助平台</p>
+    </div>
     <div class="entrance">
-        <div class="entrance-card" onclick="showPage('match-home')"><div class="icon">🤝</div><div class="title">互助匹配</div><div class="desc">12题性格问卷 → 找到能帮你的学长学姐</div></div>
-        <div class="entrance-card" onclick="showPage('quiz-home')"><div class="icon">📝</div><div class="title">刷题训练</div><div class="desc">数学分析·高等代数·考研真题·自主导题</div></div>
+        <div class="entrance-card" onclick="showPage('match-home')">
+            <span class="e-icon">🤝</span>
+            <div class="e-title">互助匹配 <span class="e-badge">12题</span></div>
+            <div class="e-desc">回答性格问卷，找到能帮你的学长学姐</div>
+        </div>
+        <div class="entrance-card" onclick="showPage('quiz-home')">
+            <span class="e-icon">📝</span>
+            <div class="e-title">刷题训练 <span class="e-badge">Beta</span></div>
+            <div class="e-desc">数学分析 · 高等代数 · 考研真题 · 自主导题</div>
+        </div>
     </div>
 </div>
 
-<!-- ==================== 匹配 ==================== -->
+<!-- ══════════════════════ 匹配 ══════════════════════ -->
 <div class="page" id="page-match-home">
-    <div class="card" style="text-align:center;"><div style="font-size:40px;">🚪</div><div style="font-size:20px;font-weight:900;">jack门</div><div style="color:var(--text-dim);font-size:13px;">新老互助破冰 · 基于性格匹配</div></div>
+    <div class="card" style="text-align:center;">
+        <div style="font-size:48px;">🚪</div>
+        <div style="font-size:22px;font-weight:900;margin:8px 0;">jack门</div>
+        <div style="color:var(--text-dim);font-size:13px;">新老互助破冰 · 基于性格匹配</div>
+    </div>
     <p style="font-size:14px;color:var(--text-dim);margin-bottom:8px;">选择身份：</p>
-    <div class="entrance-card" onclick="selectMatchRole('freshman',this)" style="margin-bottom:8px;"><div>🌱 <b>我是新生</b></div><div class="desc">想找靠谱的学长学姐带路</div></div>
-    <div class="entrance-card" onclick="selectMatchRole('senior',this)" style="margin-bottom:12px;"><div>🎓 <b>我是老生</b></div><div class="desc">想帮助新生，认识有趣的人</div></div>
+    <div class="entrance-card" onclick="selectMatchRole('freshman',this)" style="margin-bottom:8px;">
+        <div style="font-size:15px;font-weight:700;">🌱 我是新生</div>
+        <div class="e-desc">想找靠谱的学长学姐带路</div>
+    </div>
+    <div class="entrance-card" onclick="selectMatchRole('senior',this)" style="margin-bottom:12px;">
+        <div style="font-size:15px;font-weight:700;">🎓 我是老生</div>
+        <div class="e-desc">想帮助新生，认识有趣的人</div>
+    </div>
     <button class="btn btn-primary" id="btn-match-start" disabled onclick="startMatchQuiz()">开始答题 →</button>
     <button class="btn btn-secondary" onclick="showPage('home')">← 返回首页</button>
 </div>
@@ -152,16 +253,27 @@ body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC"
     <button class="btn btn-secondary" onclick="showPage('home')">← 返回首页</button>
 </div>
 
-<!-- ==================== 刷题首页 ==================== -->
+<!-- ══════════════════════ 刷题 ══════════════════════ -->
 <div class="page" id="page-quiz-home">
     <h2 style="margin-bottom:14px;">📝 刷题训练</h2>
-    <div class="entrance-card" onclick="quizStart()" style="margin-bottom:8px;"><div>🎲 <b>随机一题</b></div><div class="desc">从未做过的题里随机抽</div></div>
-    <div class="entrance-card" onclick="showPage('quiz-register')" style="margin-bottom:8px;"><div>👤 <b>注册 / 登录</b></div><div class="desc">记录做题进度和错题本</div></div>
-    <div class="entrance-card" onclick="showPage('quiz-import')" style="margin-bottom:8px;"><div>📥 <b>导入题目</b></div><div class="desc">手动添加或 JSON 批量导入</div></div>
+    <div class="entrance-card" onclick="quizStart()" style="margin-bottom:8px;">
+        <span class="e-icon">🎲</span>
+        <div class="e-title">随机一题</div>
+        <div class="e-desc">从未做过的题里随机抽</div>
+    </div>
+    <div class="entrance-card" onclick="showPage('quiz-register')" style="margin-bottom:8px;">
+        <span class="e-icon">👤</span>
+        <div class="e-title">注册 / 登录</div>
+        <div class="e-desc">记录做题进度和错题本</div>
+    </div>
+    <div class="entrance-card" onclick="showPage('quiz-import')" style="margin-bottom:8px;">
+        <span class="e-icon">📥</span>
+        <div class="e-title">导入题目</div>
+        <div class="e-desc">手动添加或 JSON 批量导入</div>
+    </div>
     <button class="btn btn-secondary" onclick="showPage('home')">← 返回首页</button>
 </div>
 
-<!-- ==================== 注册/登录 ==================== -->
 <div class="page" id="page-quiz-register">
     <div class="card"><h3 style="margin-bottom:14px;">注册</h3>
         <input class="input" id="reg-email" type="email" placeholder="校园邮箱">
@@ -182,19 +294,16 @@ body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC"
     <button class="btn btn-secondary" onclick="showPage('quiz-home')">← 返回</button>
 </div>
 
-<!-- ==================== 做题页 ==================== -->
 <div class="page" id="page-quiz-solving">
     <div id="quiz-solving-content"></div>
 </div>
 
-<!-- ==================== 错题本 ==================== -->
 <div class="page" id="page-quiz-wrong">
     <h3 style="margin-bottom:12px;">📌 错题本</h3>
     <div id="wrong-list"><div class="empty"><p>加载中...</p></div></div>
     <button class="btn btn-secondary" onclick="showPage('quiz-home')">← 返回</button>
 </div>
 
-<!-- ==================== 导入题目 ==================== -->
 <div class="page" id="page-quiz-import">
     <h3 style="margin-bottom:14px;">📥 导入题目</h3>
     <div class="card card-sm import-section">
@@ -205,14 +314,13 @@ body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC"
             <select class="select" id="imp-subject"><option value="">科目</option><option>数学分析</option><option>高等代数</option><option>常微分方程</option><option>概率论与数理统计</option><option>抽象代数</option><option>实变函数</option><option>复变函数</option><option>泛函分析</option><option>微分几何</option><option>初等数论</option><option>考研真题</option></select>
             <select class="select" id="imp-difficulty"><option value="">难度</option><option value="1">⭐</option><option value="2">⭐⭐</option><option value="3">⭐⭐⭐</option><option value="4">⭐⭐⭐⭐</option><option value="5">⭐⭐⭐⭐⭐</option></select>
         </div>
-        <input class="input" id="imp-tags" placeholder="标签（逗号分隔，如：极限,基础）">
+        <input class="input" id="imp-tags" placeholder="标签（逗号分隔）">
         <textarea class="textarea" id="imp-solution" placeholder="解析 / 答案（支持 LaTeX）" style="min-height:60px;"></textarea>
         <button class="btn btn-primary" id="btn-import-single" onclick="importSingle()">添加题目</button>
     </div>
-
     <div class="card card-sm import-section">
         <h3>JSON 批量导入</h3>
-        <textarea class="textarea" id="imp-json" placeholder='[{"title":"求极限...","content":"...","subject":"数学分析","difficulty":2,"tags":["极限"],"solution":"..."}]' style="min-height:120px;"></textarea>
+        <textarea class="textarea" id="imp-json" placeholder='[{"title":"求极限...","content":"...","subject":"数学分析","difficulty":2,"tags":["极限"],"solution":"..."}]' style="min-height:100px;"></textarea>
         <button class="btn btn-accent" id="btn-import-json" onclick="importJson()">批量导入</button>
     </div>
     <button class="btn btn-secondary" onclick="showPage('quiz-home')">← 返回</button>
@@ -221,7 +329,6 @@ body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC"
 </div>
 
 <script>
-// ══════════════════════ 全局 ══════════════════════
 const API = "https://jackmen-production.up.railway.app";
 let pageHistory = ["home"];
 let quizUser = JSON.parse(localStorage.getItem("quiz_user") || "null");
@@ -239,18 +346,14 @@ function showPage(name) {
     };
     nav.style.display = name === 'home' ? 'none' : 'flex';
     document.getElementById('nav-title').textContent = titles[name] || '';
-    // 导航右侧操作
     const act = document.getElementById('nav-action');
     if (name === 'quiz-home' && quizUser) { act.textContent = '错题本'; act.onclick = () => { loadWrongProblems(); showPage('quiz-wrong'); }; }
     else { act.textContent = ''; act.onclick = null; }
 }
-
 function goBack() {
     if (pageHistory.length > 1) pageHistory.pop();
     showPage(pageHistory[pageHistory.length - 1] || 'home');
 }
-
-// Toast 反馈系统
 let toastTimer;
 function toast(msg, type) {
     const el = document.getElementById('toast');
@@ -258,29 +361,23 @@ function toast(msg, type) {
     el.textContent = msg; el.className = 'toast ' + (type || '') + ' show';
     toastTimer = setTimeout(() => el.classList.remove('show'), 2200);
 }
-
-// 通用 fetch 封装（加载态 + 错误反馈）
 async function api(url, opts) {
     const btn = opts?.btn; if (btn) { btn.disabled = true; btn.textContent = '处理中...'; }
     try {
-        const r = await fetch(url, opts);
-        const d = await r.json();
+        const r = await fetch(url, opts); const d = await r.json();
         if (!r.ok) throw new Error(d.detail || '请求失败');
         if (btn) { btn.disabled = false; btn.textContent = opts._origText || btn.textContent; }
         return d;
     } catch(e) {
         if (btn) { btn.disabled = false; btn.textContent = opts._origText || btn.textContent; }
-        toast(e.message, 'error');
-        throw e;
+        toast(e.message, 'error'); throw e;
     }
 }
-
-// KaTeX 渲染
 function renderMath(el) {
     try { renderMathInElement(el || document.body, { delimiters: [{left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false}] }); } catch(e) {}
 }
 
-// ══════════════════════ 匹配系统 ══════════════════════
+// ─── 匹配 ───
 let matchRole=null, matchAnswers=new Array(12).fill(null), matchQ=0, matchUserId=null;
 const matchQs = [
     {t:"上了一天课，晚上更想：",o:["约朋友出去逛逛","自己待着刷手机/看书","看心情","不确定"]},
@@ -296,52 +393,45 @@ const matchQs = [
     {t:"一起学习更喜欢：",o:["你带节奏","对方带节奏","平等分工","看对方水平"]},
     {t:"最愿意帮什么样的人：",o:["主动求助目标明确的","和我性格像的","确实有困难不帮不行","能学到新东西的"]}
 ];
-function selectMatchRole(r,el){ matchRole=r; document.querySelectorAll('#page-match-home .entrance-card').forEach(c=>c.style.borderColor='var(--border)'||c.style.removeProperty('border-color')); el.style.borderColor='var(--accent)'; document.getElementById('btn-match-start').disabled=false; }
+function selectMatchRole(r,el){ matchRole=r; document.querySelectorAll('#page-match-home .entrance-card').forEach(c=>c.style.borderColor='var(--border)'); el.style.borderColor='var(--accent)'; document.getElementById('btn-match-start').disabled=false; }
 function startMatchQuiz(){ if(!matchRole)return; matchQ=0; matchAnswers=new Array(12).fill(null); showPage('match-quiz'); renderMQ(); }
 function renderMQ(){ const q=matchQs[matchQ]; let h=`<div style="font-size:13px;color:var(--text-dim);margin-bottom:8px;">第 ${matchQ+1}/12 题</div><div style="font-size:15px;font-weight:600;margin-bottom:14px;">${q.t}</div>`; q.o.forEach((o,i)=>{ h+=`<button class="option-btn${matchAnswers[matchQ]===i?' selected':''}" onclick="selectMO(${i})">${o}</button>`; }); document.getElementById('match-quiz-content').innerHTML=h; document.getElementById('btn-match-prev').style.display=matchQ===0?'none':'block'; document.getElementById('btn-match-next').disabled=matchAnswers[matchQ]===null; document.getElementById('btn-match-next').textContent=matchQ===11?'提交 ✓':'下一题 →'; }
 function selectMO(i){ matchAnswers[matchQ]=i; document.getElementById('btn-match-next').disabled=false; document.querySelectorAll('#page-match-quiz .option-btn').forEach((b,idx)=>b.classList.toggle('selected',idx===i)); }
 function matchQuizPrev(){ if(matchQ>0){matchQ--;renderMQ();} }
 function matchQuizNext(){ if(matchQ<11){matchQ++;renderMQ();}else{ showPage('match-result'); document.getElementById('match-result-content').innerHTML='<div class="empty"><div class="spinner"></div> 匹配中...</div>'; const c=prompt("联系方式（微信号/QQ）：","@"); api(API+'/api/match/submit',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({role:matchRole,answers:matchAnswers,contact:c||'@'})}).then(d=>{matchUserId=d.user_id;loadMR();toast('匹配成功！','success');}).catch(()=>{document.getElementById('match-result-content').innerHTML='<div class="empty"><p>连接失败</p></div>';}); }}
-function loadMR(){ api(API+'/api/match/'+matchUserId).then(d=>{ const el=document.getElementById('match-result-content'); if(!d.matches||!d.matches.length){el.innerHTML='<div class="card empty"><p>🔍 暂无新匹配</p><p style="font-size:13px;">分享给朋友扩大匹配池</p></div>';return;} let h=`<div class="card" style="text-align:center;"><div style="font-size:36px;">🎉</div><div style="font-size:17px;font-weight:700;">最佳匹配</div><div style="color:var(--text-dim);font-size:12px;">共${d.matches.length}位·ID:${matchUserId}</div></div>`; ['🥇','🥈','🥉'].forEach((e,i)=>{ const m=d.matches[i]; if(!m)return; h+=`<div class="problem-card"><div><span style="font-size:22px;">${e}</span> <b>${Math.round(m.score*100)}%</b> 匹配</div><div style="margin:6px 0;color:var(--text-dim);font-size:13px;">${m.reason}</div><div style="font-size:13px;">📲 ${m.contact}</div><div style="display:flex;gap:6px;margin-top:8px;"><button class="btn btn-primary btn-sm" onclick="matchC('${m.matched_id}')">🤝 连接</button><button class="btn btn-secondary btn-sm" style="margin-top:0;" onclick="matchI('${m.matched_id}')">换一批</button></div></div>`; }); el.innerHTML=h; }); }
+function loadMR(){ api(API+'/api/match/'+matchUserId).then(d=>{ const el=document.getElementById('match-result-content'); if(!d.matches||!d.matches.length){el.innerHTML='<div class="card empty"><p>🔍 暂无新匹配</p><p style="font-size:13px;">分享给朋友扩大匹配池</p></div>';return;} let h=`<div class="card match-header"><span class="big-emoji">🎉</span><div style="font-size:17px;font-weight:700;">最佳匹配</div><div style="color:var(--text-dim);font-size:12px;">共${d.matches.length}位·ID:${matchUserId}</div></div>`; ['🥇','🥈','🥉'].forEach((e,i)=>{ const m=d.matches[i]; if(!m)return; h+=`<div class="problem-card"><div class="match-medal"><span style="font-size:22px;">${e}</span> <b>${Math.round(m.score*100)}%</b> 匹配</div><div style="margin:6px 0;color:var(--text-dim);font-size:13px;">${m.reason}</div><div style="font-size:13px;">📲 ${m.contact}</div><div style="display:flex;gap:6px;margin-top:8px;"><button class="btn btn-primary btn-sm" onclick="matchC('${m.matched_id}')">🤝 连接</button><button class="btn btn-secondary btn-sm" style="margin-top:0;" onclick="matchI('${m.matched_id}')">换一批</button></div></div>`; }); el.innerHTML=h; }); }
 function matchC(id){ api(API+'/api/match/'+matchUserId+'/connect',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({matched_id:id})}).then(()=>toast('已连接！','success')); }
 function matchI(id){ api(API+'/api/match/'+matchUserId+'/ignore',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({matched_id:id})}).then(()=>loadMR()); }
 
-// ══════════════════════ 刷题系统 ══════════════════════
-
+// ─── 刷题 ───
 function quizStart(){
     if(!quizUser){ toast('请先注册或登录','error'); showPage('quiz-register'); return; }
     showPage('quiz-solving');
     document.getElementById('quiz-solving-content').innerHTML='<div class="empty"><div class="spinner"></div> 抽题中...</div>';
     api(API+'/api/problems/random?user_id='+quizUser.id).then(p => renderProblem(p)).catch(()=>{document.getElementById('quiz-solving-content').innerHTML='<div class="empty"><p>加载失败</p><button class="btn btn-secondary" onclick="showPage(\'quiz-home\')">← 返回</button></div>';});
 }
-
 function renderProblem(p){
-    if(!p||!p.id){ document.getElementById('quiz-solving-content').innerHTML='<div class="empty"><p>题库为空，去导入几道题吧</p><button class="btn btn-accent btn-sm" onclick="showPage(\'quiz-import\')">📥 导入</button><button class="btn btn-secondary btn-sm" onclick="showPage(\'quiz-home\')">← 返回</button></div>';return;}
+    if(!p||!p.id){ document.getElementById('quiz-solving-content').innerHTML='<div class="empty"><p>题库为空，去导入几道题吧</p><button class="btn btn-accent btn-sm" onclick="showPage(\'quiz-import\')">📥 导入</button><button class="btn btn-secondary btn-sm" onclick="showPage(\'quiz-home\')">← 返回</button></div>';return; }
     const stars='⭐'.repeat(p.difficulty||1);
     const tags=(p.tags||[]).map(t=>`<span class="tag tag-green">${t}</span>`).join('');
     let h=`<div class="problem-card"><span class="tag tag-purple">${p.subject}</span> <span class="tag tag-orange">${stars}</span> ${tags}<h3>${p.title}</h3><div class="problem-content">${p.content}</div>${p.solution?`<details style="margin-top:12px;cursor:pointer;"><summary style="color:var(--accent);font-weight:600;">📖 查看解析</summary><div class="problem-content" style="margin-top:8px;">${p.solution}</div></details>`:''}</div><div style="display:flex;gap:8px;"><button class="btn btn-primary" style="flex:1;" onclick="markAnswer(${p.id},'correct')">✓ 做对了</button><button class="btn btn-accent" style="flex:1;" onclick="markAnswer(${p.id},'wrong')">✗ 做错了</button></div><button class="btn btn-secondary" onclick="quizStart()">下一题 →</button><button class="btn btn-secondary" onclick="showPage('quiz-home')">← 返回</button>`;
     document.getElementById('quiz-solving-content').innerHTML=h;
     renderMath(document.getElementById('quiz-solving-content'));
 }
-
 function markAnswer(pid, status){
     if(!quizUser)return;
     const reason = status==='wrong' ? (prompt("错因（粗心/没思路/不会）：","不会")||"不会") : "";
     api(API+'/api/problems/answer',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({user_id:quizUser.id,problem_id:pid,status,wrong_reason:reason})}).then(()=>{toast(status==='correct'?'✅ 已记录':'📌 已收入错题本',status==='correct'?'success':''); quizStart();});
 }
-
 function loadWrongProblems(){
     if(!quizUser)return;
     showPage('quiz-wrong');
     api(API+'/api/user/'+quizUser.id+'/wrong-problems').then(data=>{
         const el=document.getElementById('wrong-list');
         if(!data.length){el.innerHTML='<div class="empty"><p>还没有错题 🎉</p></div>';return;}
-        el.innerHTML=data.map(r=>`<div class="problem-card card-sm"><span class="tag tag-purple">${r.subject}</span> <span class="tag tag-orange">⭐${r.difficulty}</span> <span class="tag" style="background:#2d0d0d;color:#fca5a5;">${r.wrong_reason||'未标注'}</span><h3 style="font-size:14px;margin:6px 0;">${r.title}</h3><div style="font-size:12px;color:var(--text-dim);">${(r.attempted_at||'').slice(0,10)}</div></div>`).join('');
+        el.innerHTML=data.map(r=>`<div class="problem-card card-sm"><span class="tag tag-purple">${r.subject}</span> <span class="tag tag-orange">⭐${r.difficulty}</span> <span class="tag" style="background:rgba(239,68,68,0.1);color:#fca5a5;">${r.wrong_reason||'未标注'}</span><h3 style="font-size:14px;margin:6px 0;">${r.title}</h3><div style="font-size:12px;color:var(--text-dim);">${(r.attempted_at||'').slice(0,10)}</div></div>`).join('');
     });
 }
-
-// ══════════════════════ 导入题目 ══════════════════════
-
 function importSingle(){
     const title=document.getElementById('imp-title').value.trim();
     const content=document.getElementById('imp-content').value.trim();
@@ -356,13 +446,11 @@ function importSingle(){
         .then(r=>r.json()).then(d=>{
             if(d.detail){ toast(d.detail,'error'); btn.disabled=false; btn.textContent='添加题目'; return; }
             toast('✅ 题目已添加','success');
-            // 清空表单
             document.getElementById('imp-title').value=''; document.getElementById('imp-content').value='';
             document.getElementById('imp-solution').value=''; document.getElementById('imp-tags').value='';
             btn.disabled=false; btn.textContent='添加题目';
         }).catch(e=>{ toast('导入失败','error'); btn.disabled=false; btn.textContent='添加题目'; });
 }
-
 function importJson(){
     const raw=document.getElementById('imp-json').value.trim();
     if(!raw){ toast('请粘贴 JSON','error'); return; }
@@ -379,9 +467,6 @@ function importJson(){
             btn.disabled=false; btn.textContent='批量导入';
         }).catch(e=>{ toast('导入失败','error'); btn.disabled=false; btn.textContent='批量导入'; });
 }
-
-// ══════════════════════ 用户系统 ══════════════════════
-
 function doRegister(){
     const email=document.getElementById('reg-email').value.trim();
     const password=document.getElementById('reg-password').value.trim();
@@ -395,7 +480,6 @@ function doRegister(){
         toast('注册成功！','success'); showPage('quiz-home');
     });
 }
-
 function doLogin(){
     const email=document.getElementById('login-email').value.trim();
     const password=document.getElementById('login-password').value.trim();
