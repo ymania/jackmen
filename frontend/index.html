@@ -8,186 +8,293 @@
 <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
 <style>
+@import url('https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;600;700;900&family=Noto+Sans+SC:wght@300;400;500&display=swap');
+
 :root {
-    --bg: #080c14;
-    --bg-card: rgba(255,255,255,0.03);
-    --bg-input: rgba(255,255,255,0.06);
-    --accent: #00d4aa;
-    --accent-glow: rgba(0,212,170,0.15);
-    --accent2: #6366f1;
-    --text: #f1f5f9;
-    --text-dim: #64748b;
-    --border: rgba(255,255,255,0.06);
-    --radius: 16px;
-    --radius-sm: 12px;
-    --danger: #ef4444;
-    --warn: #f59e0b;
+    --parchment: #faf6f0;
+    --paper: #fefcf8;
+    --ink: #2c2416;
+    --ink-dim: #8b7e6a;
+    --ink-faint: #c4b8a7;
+    --gold: #8b6914;
+    --gold-light: #b8942e;
+    --gold-bg: rgba(139,105,20,0.06);
+    --gold-border: rgba(139,105,20,0.15);
+    --rose: #a0524f;
+    --rose-bg: rgba(160,82,79,0.05);
+    --shadow: 0 1px 3px rgba(44,36,22,0.06), 0 1px 2px rgba(44,36,22,0.04);
+    --shadow-lg: 0 4px 16px rgba(44,36,22,0.06), 0 1px 4px rgba(44,36,22,0.04);
+    --radius: 4px;
 }
+
 * { margin:0; padding:0; box-sizing:border-box; }
 body {
-    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "PingFang SC", "Microsoft YaHei", sans-serif;
-    background: var(--bg);
-    color: var(--text);
+    font-family: "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif;
+    background: var(--parchment);
+    color: var(--ink);
     min-height: 100dvh;
-    overflow-x: hidden;
     -webkit-tap-highlight-color: transparent;
     -webkit-font-smoothing: antialiased;
+    background-image:
+        radial-gradient(ellipse at 20% 10%, rgba(139,105,20,0.03) 0%, transparent 50%),
+        radial-gradient(ellipse at 80% 90%, rgba(160,82,79,0.02) 0%, transparent 50%);
 }
-/* 装饰光晕 */
-body::before {
-    content: ''; position: fixed; top: -50%; left: -20%;
-    width: 140%; height: 100%;
-    background: radial-gradient(ellipse at 50% 0%, rgba(0,212,170,0.04) 0%, transparent 60%),
-                radial-gradient(ellipse at 80% 20%, rgba(99,102,241,0.03) 0%, transparent 50%);
-    pointer-events: none; z-index: 0;
-}
-.container { width: 100%; max-width: 480px; margin: 0 auto; padding: 0 20px 120px; position: relative; z-index: 1; }
-.page { display: none; animation: fadeUp .3s ease; }
-.page.active { display: block; }
-@keyframes fadeUp { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
 
-/* 卡片 */
+.container {
+    width: 100%; max-width: 440px; margin: 0 auto;
+    padding: 0 24px 80px;
+}
+
+.page { display: none; animation: fadeIn .35s ease; }
+.page.active { display: block; }
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(6px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* ─── 排版 ─── */
+.serif { font-family: "Noto Serif SC", "Songti SC", "SimSun", serif; }
+h1, h2, h3, .card-title { font-family: "Noto Serif SC", "Songti SC", "SimSun", serif; font-weight: 700; }
+
+/* ─── 装饰线 ─── */
+.ornament {
+    text-align: center; color: var(--ink-faint);
+    font-family: "Noto Serif SC", serif; font-size: 13px;
+    letter-spacing: 6px; margin: 8px 0;
+    user-select: none;
+}
+
+/* ─── 卡片 ─── */
 .card {
-    background: var(--bg-card);
-    border: 1px solid var(--border);
+    background: var(--paper);
+    border: 1px solid var(--gold-border);
     border-radius: var(--radius);
     padding: 24px;
     margin-bottom: 12px;
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
+    box-shadow: var(--shadow);
 }
 .card-sm { padding: 18px; }
 
-/* 按钮 */
+/* ─── 按钮 ─── */
 .btn {
     display: block; width: 100%; padding: 14px;
-    border: none; border-radius: var(--radius-sm);
-    font-size: 15px; font-weight: 600; cursor: pointer;
-    font-family: inherit; transition: all .2s; letter-spacing: 0.3px;
+    border: none; border-radius: var(--radius);
+    font-size: 15px; font-weight: 500; cursor: pointer;
+    font-family: inherit; transition: all .2s;
+    letter-spacing: 0.5px;
 }
-.btn:active { transform: scale(0.97); }
-.btn-primary { background: var(--accent); color: #000; box-shadow: 0 4px 20px var(--accent-glow); }
-.btn-primary:hover { box-shadow: 0 6px 30px rgba(0,212,170,0.25); }
-.btn-accent { background: var(--accent2); color: #fff; }
-.btn-secondary { background: transparent; border: 1px solid var(--border); color: var(--text); margin-top: 8px; }
-.btn-sm { display: inline-block; width: auto; padding: 8px 18px; font-size: 13px; border-radius: 99px; }
-.btn-danger { background: var(--danger); color: #fff; }
+.btn:active { transform: scale(0.98); }
+.btn-primary {
+    background: var(--ink);
+    color: var(--parchment);
+    box-shadow: var(--shadow);
+}
+.btn-primary:hover { background: #3d3425; }
+.btn-accent {
+    background: var(--gold);
+    color: #fff;
+}
+.btn-secondary {
+    background: transparent;
+    border: 1px solid var(--gold-border);
+    color: var(--ink-dim);
+    margin-top: 8px;
+}
+.btn-sm { display: inline-block; width: auto; padding: 8px 18px; font-size: 13px; }
+.btn-danger { background: var(--rose); color: #fff; }
+.btn-ghost {
+    background: transparent; color: var(--ink-dim);
+    font-size: 14px; padding: 10px;
+}
 
-/* 输入 */
+/* ─── 输入框 ─── */
 .input, .select, .textarea {
-    width: 100%; padding: 13px 16px;
-    background: var(--bg-input); border: 1px solid var(--border);
-    border-radius: var(--radius-sm); color: var(--text);
-    font-size: 15px; font-family: inherit; margin-bottom: 10px;
+    width: 100%; padding: 13px 14px;
+    background: var(--parchment);
+    border: 1px solid var(--gold-border);
+    border-radius: var(--radius);
+    color: var(--ink); font-size: 15px;
+    font-family: inherit; margin-bottom: 10px;
     transition: border-color .2s;
 }
-.input:focus, .select:focus, .textarea:focus { outline: none; border-color: var(--accent); }
+.input:focus, .select:focus, .textarea:focus {
+    outline: none; border-color: var(--gold);
+    background: var(--paper);
+}
 .textarea { min-height: 100px; resize: vertical; }
-.select { appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%2364748b'%3E%3Cpath d='M6 8L1 3h10z'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 14px center; padding-right: 36px; }
+.select {
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%238b7e6a'%3E%3Cpath d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat; background-position: right 14px center;
+    padding-right: 36px;
+}
 
-/* ─── 首页 Hero ─── */
+/* ─── Hero ─── */
 .hero {
-    text-align: center; padding: 48px 8px 36px;
+    text-align: center; padding: 56px 8px 32px;
     position: relative;
 }
-.hero-logo {
-    font-size: 56px; margin-bottom: 12px;
-    animation: float 3s ease-in-out infinite;
-    display: inline-block;
+.hero-mark {
+    font-family: "Noto Serif SC", serif;
+    font-size: 64px; font-weight: 900;
+    color: var(--gold);
+    line-height: 1;
+    margin-bottom: 4px;
+    letter-spacing: -2px;
 }
-@keyframes float { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-6px); } }
-.hero h1 { font-size: 32px; font-weight: 900; letter-spacing: -0.5px; }
-.hero .brand-accent { color: var(--accent); }
-.hero .sub { color: var(--text-dim); font-size: 14px; margin-top: 6px; margin-bottom: 0; }
+.hero h1 {
+    font-size: 28px; font-weight: 900;
+    letter-spacing: 3px;
+    margin: 4px 0;
+}
+.hero .sub {
+    font-size: 13px; color: var(--ink-dim);
+    letter-spacing: 2px;
+    margin-top: 4px;
+}
 
 /* ─── 入口卡片 ─── */
-.entrance { display: flex; flex-direction: column; gap: 12px; margin-top: 8px; }
+.entrance { display: flex; flex-direction: column; gap: 10px; }
 .entrance-card {
-    background: var(--bg-card);
-    border: 1px solid var(--border);
+    background: var(--paper);
+    border: 1px solid var(--gold-border);
     border-radius: var(--radius);
     padding: 24px 20px;
     cursor: pointer;
     transition: all .25s;
-    position: relative; overflow: hidden;
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
+    box-shadow: var(--shadow);
+    border-left: 2px solid var(--gold);
 }
-.entrance-card::after {
-    content: ''; position: absolute; top: 0; right: 0;
-    width: 120px; height: 120px;
-    border-radius: 50%;
-    transform: translate(40px, -40px);
-    transition: all .3s;
+.entrance-card:active {
+    transform: scale(0.985);
+    box-shadow: var(--shadow-lg);
+    border-left-color: var(--rose);
 }
-.entrance-card:nth-child(1)::after { background: rgba(0,212,170,0.04); }
-.entrance-card:nth-child(2)::after { background: rgba(99,102,241,0.04); }
-.entrance-card:active { transform: scale(0.98); border-color: var(--accent); }
-.entrance-card .e-icon { font-size: 36px; margin-bottom: 10px; display: block; }
-.entrance-card .e-title { font-size: 18px; font-weight: 700; display: flex; align-items: center; gap: 8px; }
+.entrance-card .e-icon { font-size: 28px; opacity: 0.7; }
+.entrance-card .e-title {
+    font-family: "Noto Serif SC", serif;
+    font-size: 18px; font-weight: 700;
+    margin: 8px 0 4px;
+}
 .entrance-card .e-badge {
-    font-size: 10px; padding: 2px 8px; border-radius: 99px;
-    font-weight: 600; letter-spacing: 0.5px;
+    display: inline-block; font-size: 10px; padding: 2px 8px;
+    border-radius: 99px; font-weight: 600; letter-spacing: 0.5px;
+    font-family: "Noto Sans SC", sans-serif;
+    background: var(--gold-bg); color: var(--gold);
+    margin-left: 6px; vertical-align: middle;
 }
-.entrance-card:nth-child(1) .e-badge { background: rgba(0,212,170,0.15); color: var(--accent); }
-.entrance-card:nth-child(2) .e-badge { background: rgba(99,102,241,0.15); color: #a5b4fc; }
-.entrance-card .e-desc { font-size: 13px; color: var(--text-dim); margin-top: 6px; line-height: 1.5; }
+.entrance-card .e-desc {
+    font-size: 13px; color: var(--ink-dim);
+    line-height: 1.6; margin-top: 2px;
+}
 
-/* 标签 */
-.tag { display: inline-block; font-size: 11px; padding: 3px 10px; border-radius: 99px; margin: 0 4px 4px 0; font-weight: 600; }
-.tag-green { background: rgba(0,212,170,0.12); color: var(--accent); }
-.tag-purple { background: rgba(99,102,241,0.12); color: #a5b4fc; }
-.tag-orange { background: rgba(245,158,11,0.12); color: var(--warn); }
+/* ─── 标签 ─── */
+.tag {
+    display: inline-block; font-size: 11px; padding: 2px 8px;
+    border-radius: 2px; margin: 0 4px 4px 0;
+    font-weight: 500; letter-spacing: 0.3px;
+}
+.tag-green { background: var(--gold-bg); color: var(--gold); }
+.tag-purple { background: var(--rose-bg); color: var(--rose); }
+.tag-orange { background: #fdf3e4; color: #b8781a; }
 
-/* 选项按钮 */
+/* ─── 选项 ─── */
 .option-btn {
     display: block; width: 100%; padding: 14px 16px; margin-bottom: 8px;
-    background: var(--bg-input); border: 1px solid var(--border); border-radius: var(--radius-sm);
-    color: var(--text); text-align: left; font-size: 14px; cursor: pointer; transition: all .15s;
+    background: var(--parchment); border: 1px solid var(--gold-border);
+    border-radius: var(--radius);
+    color: var(--ink); text-align: left; font-size: 14px;
+    cursor: pointer; transition: all .15s;
 }
-.option-btn:active { border-color: var(--accent); background: rgba(0,212,170,0.08); }
-.option-btn.selected { border-color: var(--accent); background: rgba(0,212,170,0.1); }
+.option-btn:active { border-color: var(--gold); background: var(--gold-bg); }
+.option-btn.selected {
+    border-color: var(--gold);
+    background: var(--gold-bg);
+    color: var(--gold);
+}
 
-/* Toast */
+/* ─── Toast ─── */
 .toast {
     position: fixed; bottom: 32px; left: 50%; transform: translateX(-50%);
-    background: rgba(15,23,42,0.95); color: #fff; padding: 12px 24px;
-    border-radius: 99px; font-size: 13px; opacity: 0; transition: opacity .3s;
-    z-index: 999; pointer-events: none; border: 1px solid var(--border);
-    backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+    background: var(--ink); color: var(--parchment);
+    padding: 10px 22px; border-radius: 2px;
+    font-size: 13px; opacity: 0; transition: opacity .3s;
+    z-index: 999; pointer-events: none;
+    box-shadow: var(--shadow-lg);
 }
 .toast.show { opacity: 1; }
-.toast.success { border-color: var(--accent); color: var(--accent); }
-.toast.error { border-color: var(--danger); color: var(--danger); }
+.toast.success { background: #2c2416; border-left: 2px solid var(--gold); }
+.toast.error { background: #3d1a1a; border-left: 2px solid var(--rose); }
 
-/* 导航 */
-.nav-bar { display: flex; align-items: center; justify-content: space-between; padding: 16px 0 8px; }
-.nav-back { cursor: pointer; color: var(--text-dim); font-size: 14px; padding: 8px 0; }
-.nav-title { font-weight: 700; font-size: 16px; }
-.nav-action { cursor: pointer; color: var(--accent); font-size: 13px; font-weight: 600; padding: 8px 0; }
+/* ─── 导航 ─── */
+.nav-bar {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 18px 0 10px;
+    border-bottom: 1px solid var(--gold-border);
+    margin-bottom: 16px;
+}
+.nav-back { cursor: pointer; color: var(--ink-dim); font-size: 14px; padding: 8px 0; }
+.nav-title {
+    font-family: "Noto Serif SC", serif;
+    font-size: 15px; font-weight: 600;
+    color: var(--ink);
+}
+.nav-action { cursor: pointer; color: var(--gold); font-size: 13px; font-weight: 500; padding: 8px 0; }
 
-/* 加载 */
-.spinner { display: inline-block; width: 20px; height: 20px; border: 2px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: spin .6s linear infinite; margin-right: 8px; vertical-align: middle; }
+/* ─── 加载 ─── */
+.spinner {
+    display: inline-block; width: 18px; height: 18px;
+    border: 2px solid var(--gold-border); border-top-color: var(--gold);
+    border-radius: 50%; animation: spin .6s linear infinite;
+    margin-right: 8px; vertical-align: middle;
+}
 @keyframes spin { to { transform: rotate(360deg); } }
-.empty { text-align: center; padding: 48px 20px; color: var(--text-dim); }
+.empty { text-align: center; padding: 48px 20px; color: var(--ink-dim); }
 
-/* 题目卡片 */
-.problem-card { border: 1px solid var(--border); border-radius: var(--radius); padding: 20px; margin-bottom: 12px; background: var(--bg-card); }
-.problem-card h3 { font-size: 16px; margin: 10px 0; line-height: 1.4; }
+/* ─── 题目卡片 ─── */
+.problem-card {
+    border: 1px solid var(--gold-border);
+    border-radius: var(--radius);
+    padding: 20px; margin-bottom: 12px;
+    background: var(--paper);
+    box-shadow: var(--shadow);
+}
+.problem-card h3 {
+    font-family: "Noto Serif SC", serif;
+    font-size: 16px; margin: 10px 0; line-height: 1.5;
+}
 .problem-card .katex { font-size: 1.1em; }
-.problem-content { margin: 12px 0; color: var(--text-dim); line-height: 2; font-size: 15px; }
+.problem-content {
+    margin: 12px 0; color: var(--ink-dim);
+    line-height: 2; font-size: 15px;
+}
 .problem-content .katex-display { margin: 14px 0; }
 
-/* 导入页 */
+/* ─── 导入页 ─── */
 .import-section { margin-bottom: 16px; }
-.import-section h3 { font-size: 14px; margin-bottom: 10px; color: var(--text-dim); font-weight: 500; }
+.import-section h3 {
+    font-family: "Noto Serif SC", serif;
+    font-size: 14px; margin-bottom: 10px;
+    color: var(--ink-dim); font-weight: 500;
+}
 .field-row { display: flex; gap: 8px; }
 .field-row > * { flex: 1; }
 
 /* ─── 匹配结果 ─── */
-.match-header { text-align: center; padding: 20px 0 8px; }
-.match-header .big-emoji { font-size: 48px; display: block; margin-bottom: 8px; }
+.match-header { text-align: center; padding: 16px 0 8px; }
+.match-header .big-emoji { font-size: 42px; display: block; margin-bottom: 8px; }
 .match-medal { font-size: 14px; display: inline-flex; align-items: center; gap: 6px; }
+
+/* ─── 链接 ─── */
+a { color: var(--gold); text-decoration: none; }
+a:hover { text-decoration: underline; }
+
+/* ─── details/summary ─── */
+details summary {
+    color: var(--gold); cursor: pointer;
+    font-family: "Noto Serif SC", serif; font-weight: 600;
+    font-size: 13px;
+}
 </style>
 </head>
 <body>
@@ -204,20 +311,21 @@ body::before {
 <!-- ══════════════════════ 首页 ══════════════════════ -->
 <div class="page active" id="page-home">
     <div class="hero">
-        <div class="hero-logo">🚪</div>
-        <h1>jack<span class="brand-accent">门</span></h1>
-        <p class="sub">大工校园互助平台</p>
+        <div class="hero-mark">門</div>
+        <h1>jack<span style="color:var(--gold);">門</span></h1>
+        <div class="ornament">— · —</div>
+        <p class="sub">大工校园 · 互助平台</p>
     </div>
     <div class="entrance">
         <div class="entrance-card" onclick="showPage('match-home')">
             <span class="e-icon">🤝</span>
-            <div class="e-title">互助匹配 <span class="e-badge">12题</span></div>
-            <div class="e-desc">回答性格问卷，找到能帮你的学长学姐</div>
+            <div class="e-title">互助匹配 <span class="e-badge">十二问</span></div>
+            <div class="e-desc">答一份性格问卷，觅一位同行之人</div>
         </div>
-        <div class="entrance-card" onclick="showPage('quiz-home')">
-            <span class="e-icon">📝</span>
-            <div class="e-title">刷题训练 <span class="e-badge">Beta</span></div>
-            <div class="e-desc">数学分析 · 高等代数 · 考研真题 · 自主导题</div>
+        <div class="entrance-card" onclick="showPage('quiz-home')" style="border-left-color: var(--rose);">
+            <span class="e-icon">📜</span>
+            <div class="e-title">习 题 集</div>
+            <div class="e-desc">数学分析 · 高等代数 · 常微分方程</div>
         </div>
     </div>
 </div>
@@ -225,73 +333,78 @@ body::before {
 <!-- ══════════════════════ 匹配 ══════════════════════ -->
 <div class="page" id="page-match-home">
     <div class="card" style="text-align:center;">
-        <div style="font-size:48px;">🚪</div>
-        <div style="font-size:22px;font-weight:900;margin:8px 0;">jack门</div>
-        <div style="color:var(--text-dim);font-size:13px;">新老互助破冰 · 基于性格匹配</div>
+        <div class="hero-mark" style="font-size:48px;margin-bottom:8px;">門</div>
+        <div class="serif" style="font-size:20px;font-weight:900;">jack門</div>
+        <div class="ornament">— · —</div>
+        <div style="color:var(--ink-dim);font-size:13px;">新老破冰 · 以性情相契</div>
     </div>
-    <p style="font-size:14px;color:var(--text-dim);margin-bottom:8px;">选择身份：</p>
+    <p style="font-size:13px;color:var(--ink-dim);margin-bottom:8px;font-family:'Noto Serif SC',serif;">君为——</p>
     <div class="entrance-card" onclick="selectMatchRole('freshman',this)" style="margin-bottom:8px;">
-        <div style="font-size:15px;font-weight:700;">🌱 我是新生</div>
-        <div class="e-desc">想找靠谱的学长学姐带路</div>
+        <div style="font-size:15px;font-weight:600;font-family:'Noto Serif SC',serif;">🌱 新 生</div>
+        <div class="e-desc">初入此园，欲寻前辈指点迷津</div>
     </div>
     <div class="entrance-card" onclick="selectMatchRole('senior',this)" style="margin-bottom:12px;">
-        <div style="font-size:15px;font-weight:700;">🎓 我是老生</div>
-        <div class="e-desc">想帮助新生，认识有趣的人</div>
+        <div style="font-size:15px;font-weight:600;font-family:'Noto Serif SC',serif;">🎓 故 人</div>
+        <div class="e-desc">已行远路，愿为后来者秉烛</div>
     </div>
-    <button class="btn btn-primary" id="btn-match-start" disabled onclick="startMatchQuiz()">开始答题 →</button>
-    <button class="btn btn-secondary" onclick="showPage('home')">← 返回首页</button>
+    <button class="btn btn-primary" id="btn-match-start" disabled onclick="startMatchQuiz()">始 答 题</button>
+    <button class="btn btn-ghost" onclick="showPage('home')">← 返回</button>
 </div>
 
 <div class="page" id="page-match-quiz">
     <div class="card" id="match-quiz-content"></div>
-    <button class="btn btn-primary" id="btn-match-next" disabled onclick="matchQuizNext()">下一题 →</button>
-    <button class="btn btn-secondary" id="btn-match-prev" style="display:none;" onclick="matchQuizPrev()">上一题</button>
+    <button class="btn btn-primary" id="btn-match-next" disabled onclick="matchQuizNext()">次 题</button>
+    <button class="btn btn-ghost" id="btn-match-prev" style="display:none;" onclick="matchQuizPrev()">前 题</button>
 </div>
 
 <div class="page" id="page-match-result">
     <div id="match-result-content"></div>
-    <button class="btn btn-secondary" onclick="showPage('home')">← 返回首页</button>
+    <button class="btn btn-ghost" onclick="showPage('home')">← 返回</button>
 </div>
 
 <!-- ══════════════════════ 刷题 ══════════════════════ -->
 <div class="page" id="page-quiz-home">
-    <h2 style="margin-bottom:14px;">📝 刷题训练</h2>
+    <h2 class="serif" style="margin-bottom:16px;font-size:20px;">📜 习 题 集</h2>
     <div class="entrance-card" onclick="quizStart()" style="margin-bottom:8px;">
         <span class="e-icon">🎲</span>
-        <div class="e-title">随机一题</div>
-        <div class="e-desc">从未做过的题里随机抽</div>
+        <div class="e-title">随 机</div>
+        <div class="e-desc">从未竟之处拈来一题</div>
     </div>
-    <div class="entrance-card" onclick="showPage('quiz-register')" style="margin-bottom:8px;">
-        <span class="e-icon">👤</span>
-        <div class="e-title">注册 / 登录</div>
-        <div class="e-desc">记录做题进度和错题本</div>
+    <div class="entrance-card" onclick="showPage('quiz-register')" style="margin-bottom:8px;border-left-color: var(--rose);">
+        <span class="e-icon">✎</span>
+        <div class="e-title">名 册</div>
+        <div class="e-desc">录其进退，存其得失</div>
     </div>
     <div class="entrance-card" onclick="showPage('quiz-import')" style="margin-bottom:8px;">
-        <span class="e-icon">📥</span>
-        <div class="e-title">导入题目</div>
-        <div class="e-desc">手动添加或 JSON 批量导入</div>
+        <span class="e-icon">＋</span>
+        <div class="e-title">入 题</div>
+        <div class="e-desc">手书或批量添入新题</div>
     </div>
-    <button class="btn btn-secondary" onclick="showPage('home')">← 返回首页</button>
+    <button class="btn btn-ghost" onclick="showPage('home')">← 返回</button>
 </div>
 
 <div class="page" id="page-quiz-register">
-    <div class="card"><h3 style="margin-bottom:14px;">注册</h3>
-        <input class="input" id="reg-email" type="email" placeholder="校园邮箱">
-        <input class="input" id="reg-password" type="password" placeholder="密码（至少6位）">
-        <input class="input" id="reg-nickname" type="text" placeholder="昵称（选填）">
-        <button class="btn btn-primary" id="btn-register" onclick="doRegister()">注册</button>
-        <p style="margin-top:10px;font-size:13px;color:var(--text-dim);text-align:center;">已有账号？<a href="#" onclick="showPage('quiz-login');return false;" style="color:var(--accent);">登录</a></p>
+    <div class="card">
+        <h3 class="serif" style="margin-bottom:16px;font-size:17px;">注 册</h3>
+        <input class="input" id="reg-email" type="email" placeholder="邮 箱">
+        <input class="input" id="reg-password" type="password" placeholder="密 码（至少六位）">
+        <input class="input" id="reg-nickname" type="text" placeholder="名 号（可不填）">
+        <button class="btn btn-primary" id="btn-register" onclick="doRegister()">注 册</button>
+        <p style="margin-top:12px;font-size:13px;color:var(--ink-dim);text-align:center;">
+            已有名册？<a href="#" onclick="showPage('quiz-login');return false;">登 入</a>
+        </p>
     </div>
-    <button class="btn btn-secondary" onclick="showPage('quiz-home')">← 返回</button>
+    <button class="btn btn-ghost" onclick="showPage('quiz-home')">← 返回</button>
 </div>
 
 <div class="page" id="page-quiz-login">
-    <div class="card"><h3 style="margin-bottom:14px;">登录</h3>
-        <input class="input" id="login-email" type="email" placeholder="校园邮箱">
-        <input class="input" id="login-password" type="password" placeholder="密码">
-        <button class="btn btn-primary" id="btn-login" onclick="doLogin()">登录</button>
+    <div class="card">
+        <h3 class="serif" style="margin-bottom:16px;font-size:17px;">登 入</h3>
+        <input class="input" id="login-email" type="email" placeholder="邮 箱">
+        <input class="input" id="login-password" type="password" placeholder="密 码">
+        <button class="btn btn-primary" id="btn-login" onclick="doLogin()">登 入</button>
     </div>
-    <button class="btn btn-secondary" onclick="showPage('quiz-home')">← 返回</button>
+    <button class="btn btn-ghost" onclick="showPage('quiz-home')">← 返回</button>
 </div>
 
 <div class="page" id="page-quiz-solving">
@@ -299,31 +412,31 @@ body::before {
 </div>
 
 <div class="page" id="page-quiz-wrong">
-    <h3 style="margin-bottom:12px;">📌 错题本</h3>
-    <div id="wrong-list"><div class="empty"><p>加载中...</p></div></div>
-    <button class="btn btn-secondary" onclick="showPage('quiz-home')">← 返回</button>
+    <h3 class="serif" style="margin-bottom:14px;font-size:17px;">📌 错 题 录</h3>
+    <div id="wrong-list"><div class="empty"><p>翻阅中...</p></div></div>
+    <button class="btn btn-ghost" onclick="showPage('quiz-home')">← 返回</button>
 </div>
 
 <div class="page" id="page-quiz-import">
-    <h3 style="margin-bottom:14px;">📥 导入题目</h3>
+    <h3 class="serif" style="margin-bottom:14px;font-size:17px;">入 题</h3>
     <div class="card card-sm import-section">
-        <h3>手动添加</h3>
-        <input class="input" id="imp-title" placeholder="题目标题">
-        <textarea class="textarea" id="imp-content" placeholder="题目内容（支持 LaTeX: $...$ 行内, $$...$$ 块级）"></textarea>
+        <h3>手 书</h3>
+        <input class="input" id="imp-title" placeholder="题 名">
+        <textarea class="textarea" id="imp-content" placeholder="题 文（可书 LaTeX：$...$ 行内，$$...$$ 另起）"></textarea>
         <div class="field-row">
-            <select class="select" id="imp-subject"><option value="">科目</option><option>数学分析</option><option>高等代数</option><option>常微分方程</option><option>概率论与数理统计</option><option>抽象代数</option><option>实变函数</option><option>复变函数</option><option>泛函分析</option><option>微分几何</option><option>初等数论</option><option>考研真题</option></select>
-            <select class="select" id="imp-difficulty"><option value="">难度</option><option value="1">⭐</option><option value="2">⭐⭐</option><option value="3">⭐⭐⭐</option><option value="4">⭐⭐⭐⭐</option><option value="5">⭐⭐⭐⭐⭐</option></select>
+            <select class="select" id="imp-subject"><option value="">科 目</option><option>数学分析</option><option>高等代数</option><option>常微分方程</option><option>概率论与数理统计</option><option>抽象代数</option><option>实变函数</option><option>复变函数</option><option>泛函分析</option><option>微分几何</option><option>初等数论</option><option>考研真题</option></select>
+            <select class="select" id="imp-difficulty"><option value="">难 度</option><option value="1">⭐</option><option value="2">⭐⭐</option><option value="3">⭐⭐⭐</option><option value="4">⭐⭐⭐⭐</option><option value="5">⭐⭐⭐⭐⭐</option></select>
         </div>
-        <input class="input" id="imp-tags" placeholder="标签（逗号分隔）">
-        <textarea class="textarea" id="imp-solution" placeholder="解析 / 答案（支持 LaTeX）" style="min-height:60px;"></textarea>
-        <button class="btn btn-primary" id="btn-import-single" onclick="importSingle()">添加题目</button>
+        <input class="input" id="imp-tags" placeholder="门 类（逗号分隔）">
+        <textarea class="textarea" id="imp-solution" placeholder="题 解" style="min-height:60px;"></textarea>
+        <button class="btn btn-primary" id="btn-import-single" onclick="importSingle()">入 题</button>
     </div>
     <div class="card card-sm import-section">
-        <h3>JSON 批量导入</h3>
-        <textarea class="textarea" id="imp-json" placeholder='[{"title":"求极限...","content":"...","subject":"数学分析","difficulty":2,"tags":["极限"],"solution":"..."}]' style="min-height:100px;"></textarea>
-        <button class="btn btn-accent" id="btn-import-json" onclick="importJson()">批量导入</button>
+        <h3>批 量</h3>
+        <textarea class="textarea" id="imp-json" placeholder='[{"title":"...","content":"...","subject":"数学分析","difficulty":2,"tags":["极限"],"solution":"..."}]' style="min-height:100px;"></textarea>
+        <button class="btn btn-accent" id="btn-import-json" onclick="importJson()">批量添入</button>
     </div>
-    <button class="btn btn-secondary" onclick="showPage('quiz-home')">← 返回</button>
+    <button class="btn btn-ghost" onclick="showPage('quiz-home')">← 返回</button>
 </div>
 
 </div>
@@ -340,14 +453,14 @@ function showPage(name) {
     if (page) page.classList.add('active');
     const nav = document.getElementById('nav-bar');
     const titles = {
-        'match-home':'互助匹配','match-quiz':'性格问卷','match-result':'匹配结果',
-        'quiz-home':'刷题训练','quiz-register':'注册','quiz-login':'登录',
-        'quiz-solving':'做题中','quiz-wrong':'错题本','quiz-import':'导入题目'
+        'match-home':'互 助 匹 配','match-quiz':'性 情 问 卷','match-result':'契 合 之 人',
+        'quiz-home':'习 题 集','quiz-register':'注 册','quiz-login':'登 入',
+        'quiz-solving':'解 题','quiz-wrong':'错 题 录','quiz-import':'入 题'
     };
     nav.style.display = name === 'home' ? 'none' : 'flex';
     document.getElementById('nav-title').textContent = titles[name] || '';
     const act = document.getElementById('nav-action');
-    if (name === 'quiz-home' && quizUser) { act.textContent = '错题本'; act.onclick = () => { loadWrongProblems(); showPage('quiz-wrong'); }; }
+    if (name === 'quiz-home' && quizUser) { act.textContent = '错题录'; act.onclick = () => { loadWrongProblems(); showPage('quiz-wrong'); }; }
     else { act.textContent = ''; act.onclick = null; }
 }
 function goBack() {
@@ -362,10 +475,10 @@ function toast(msg, type) {
     toastTimer = setTimeout(() => el.classList.remove('show'), 2200);
 }
 async function api(url, opts) {
-    const btn = opts?.btn; if (btn) { btn.disabled = true; btn.textContent = '处理中...'; }
+    const btn = opts?.btn; if (btn) { btn.disabled = true; btn.textContent = '……'; }
     try {
         const r = await fetch(url, opts); const d = await r.json();
-        if (!r.ok) throw new Error(d.detail || '请求失败');
+        if (!r.ok) throw new Error(d.detail || '请 求 未 遂');
         if (btn) { btn.disabled = false; btn.textContent = opts._origText || btn.textContent; }
         return d;
     } catch(e) {
@@ -380,56 +493,56 @@ function renderMath(el) {
 // ─── 匹配 ───
 let matchRole=null, matchAnswers=new Array(12).fill(null), matchQ=0, matchUserId=null;
 const matchQs = [
-    {t:"上了一天课，晚上更想：",o:["约朋友出去逛逛","自己待着刷手机/看书","看心情","不确定"]},
-    {t:"小组讨论时通常：",o:["先发言带动气氛","先听别人说完再开口","一半一半","看主题"]},
-    {t:"学新东西更依赖：",o:["具体例子和步骤","抽象概念和底层框架","一半一半","分情况"]},
-    {t:"看一篇教程更在意：",o:["有没有可操作的步骤","底层原理讲清楚没有","都重要","看心情"]},
-    {t:"做重要决定优先考虑：",o:["逻辑和数据","感受和价值观","一半一半","问别人"]},
-    {t:"朋友诉苦你第一反应：",o:["帮忙分析解决方案","先共情","都有","不知道说什么"]},
-    {t:"面对截止日期：",o:["提前规划分步完成","截止前冲刺效率最高","看任务类型","没注意过"]},
-    {t:"周末安排：",o:["列出计划按顺序来","随心所欲","只有大概方向","完全不计划"]},
-    {t:"更擅长帮人解决：",o:["学习方法/考试技巧","技术/编程/工具","情感/人际关系","生活信息"]},
-    {t:"遇到困难时习惯：",o:["马上找人问","自己先搜不行再问","不好意思开口","看困难大小"]},
-    {t:"一起学习更喜欢：",o:["你带节奏","对方带节奏","平等分工","看对方水平"]},
-    {t:"最愿意帮什么样的人：",o:["主动求助目标明确的","和我性格像的","确实有困难不帮不行","能学到新东西的"]}
+    {t:"一日课毕，晚间更愿——",o:["约友出游","独处静思","视心而定","未可知也"]},
+    {t:"小组议论时，常——",o:["先言以振之","先闻而后语","各半","视题而定"]},
+    {t:"学新物更赖——",o:["实例与步骤","原理与框架","各半","分 说"]},
+    {t:"览一文更重——",o:["可循之法","底层之义","俱重","随心"]},
+    {t:"临大事决断先依——",o:["理与数","情与义","各半","问于他人"]},
+    {t:"友人诉苦，汝先——",o:["析而解之","感而同之","兼有","不知何以应"]},
+    {t:"限期将至——",o:["预为筹划","至期乃奋","随事而异","未尝留意"]},
+    {t:"休沐之日——",o:["列序而行","从心所欲","略定方向","全无规划"]},
+    {t:"所长在于——",o:["学法应试","技与术","人情世故","消息灵通"]},
+    {t:"遇困之时——",o:["即问于人","先自求索","羞于启齿","视难易而定"]},
+    {t:"共学之好——",o:["汝为主领","彼为引领","平 分","视彼之深浅"]},
+    {t:"愿助何人——",o:["志明而求者","性相近者","实难不助者","可互学者"]}
 ];
-function selectMatchRole(r,el){ matchRole=r; document.querySelectorAll('#page-match-home .entrance-card').forEach(c=>c.style.borderColor='var(--border)'); el.style.borderColor='var(--accent)'; document.getElementById('btn-match-start').disabled=false; }
+function selectMatchRole(r,el){ matchRole=r; document.querySelectorAll('#page-match-home .entrance-card').forEach(c=>c.style.borderLeftColor='var(--gold)'); el.style.borderLeftColor='var(--rose)'; document.getElementById('btn-match-start').disabled=false; }
 function startMatchQuiz(){ if(!matchRole)return; matchQ=0; matchAnswers=new Array(12).fill(null); showPage('match-quiz'); renderMQ(); }
-function renderMQ(){ const q=matchQs[matchQ]; let h=`<div style="font-size:13px;color:var(--text-dim);margin-bottom:8px;">第 ${matchQ+1}/12 题</div><div style="font-size:15px;font-weight:600;margin-bottom:14px;">${q.t}</div>`; q.o.forEach((o,i)=>{ h+=`<button class="option-btn${matchAnswers[matchQ]===i?' selected':''}" onclick="selectMO(${i})">${o}</button>`; }); document.getElementById('match-quiz-content').innerHTML=h; document.getElementById('btn-match-prev').style.display=matchQ===0?'none':'block'; document.getElementById('btn-match-next').disabled=matchAnswers[matchQ]===null; document.getElementById('btn-match-next').textContent=matchQ===11?'提交 ✓':'下一题 →'; }
+function renderMQ(){ const q=matchQs[matchQ]; let h=`<div style="font-size:12px;color:var(--ink-dim);margin-bottom:10px;font-family:'Noto Serif SC',serif;">其 ${matchQ+1} / 十二</div><div class="serif" style="font-size:16px;font-weight:600;margin-bottom:16px;">${q.t}</div>`; q.o.forEach((o,i)=>{ h+=`<button class="option-btn${matchAnswers[matchQ]===i?' selected':''}" onclick="selectMO(${i})">${o}</button>`; }); document.getElementById('match-quiz-content').innerHTML=h; document.getElementById('btn-match-prev').style.display=matchQ===0?'none':'block'; document.getElementById('btn-match-next').disabled=matchAnswers[matchQ]===null; document.getElementById('btn-match-next').textContent=matchQ===11?'呈 卷':'次 题'; }
 function selectMO(i){ matchAnswers[matchQ]=i; document.getElementById('btn-match-next').disabled=false; document.querySelectorAll('#page-match-quiz .option-btn').forEach((b,idx)=>b.classList.toggle('selected',idx===i)); }
 function matchQuizPrev(){ if(matchQ>0){matchQ--;renderMQ();} }
-function matchQuizNext(){ if(matchQ<11){matchQ++;renderMQ();}else{ showPage('match-result'); document.getElementById('match-result-content').innerHTML='<div class="empty"><div class="spinner"></div> 匹配中...</div>'; const c=prompt("联系方式（微信号/QQ）：","@"); api(API+'/api/match/submit',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({role:matchRole,answers:matchAnswers,contact:c||'@'})}).then(d=>{matchUserId=d.user_id;loadMR();toast('匹配成功！','success');}).catch(()=>{document.getElementById('match-result-content').innerHTML='<div class="empty"><p>连接失败</p></div>';}); }}
-function loadMR(){ api(API+'/api/match/'+matchUserId).then(d=>{ const el=document.getElementById('match-result-content'); if(!d.matches||!d.matches.length){el.innerHTML='<div class="card empty"><p>🔍 暂无新匹配</p><p style="font-size:13px;">分享给朋友扩大匹配池</p></div>';return;} let h=`<div class="card match-header"><span class="big-emoji">🎉</span><div style="font-size:17px;font-weight:700;">最佳匹配</div><div style="color:var(--text-dim);font-size:12px;">共${d.matches.length}位·ID:${matchUserId}</div></div>`; ['🥇','🥈','🥉'].forEach((e,i)=>{ const m=d.matches[i]; if(!m)return; h+=`<div class="problem-card"><div class="match-medal"><span style="font-size:22px;">${e}</span> <b>${Math.round(m.score*100)}%</b> 匹配</div><div style="margin:6px 0;color:var(--text-dim);font-size:13px;">${m.reason}</div><div style="font-size:13px;">📲 ${m.contact}</div><div style="display:flex;gap:6px;margin-top:8px;"><button class="btn btn-primary btn-sm" onclick="matchC('${m.matched_id}')">🤝 连接</button><button class="btn btn-secondary btn-sm" style="margin-top:0;" onclick="matchI('${m.matched_id}')">换一批</button></div></div>`; }); el.innerHTML=h; }); }
-function matchC(id){ api(API+'/api/match/'+matchUserId+'/connect',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({matched_id:id})}).then(()=>toast('已连接！','success')); }
+function matchQuizNext(){ if(matchQ<11){matchQ++;renderMQ();}else{ showPage('match-result'); document.getElementById('match-result-content').innerHTML='<div class="empty"><div class="spinner"></div> 寻 觅 中……</div>'; const c=prompt("联 系 之 法（微信/QQ）：","@"); api(API+'/api/match/submit',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({role:matchRole,answers:matchAnswers,contact:c||'@'})}).then(d=>{matchUserId=d.user_id;loadMR();toast('已 呈 卷','success');}).catch(()=>{document.getElementById('match-result-content').innerHTML='<div class="empty"><p>通 联 失 败</p></div>';}); }}
+function loadMR(){ api(API+'/api/match/'+matchUserId).then(d=>{ const el=document.getElementById('match-result-content'); if(!d.matches||!d.matches.length){el.innerHTML='<div class="card empty"><p style="font-family:\"Noto Serif SC\",serif;">🔍 暂 无 契 合</p><p style="font-size:13px;">邀友同行，以广其池</p></div>';return;} let h=`<div class="card match-header"><span class="big-emoji">✦</span><div class="serif" style="font-size:17px;font-weight:700;">契 合 之 人</div><div class="ornament">— · —</div><div style="color:var(--ink-dim);font-size:12px;">共 ${d.matches.length} 人 · 号：${matchUserId}</div></div>`; ['甲','乙','丙'].forEach((e,i)=>{ const m=d.matches[i]; if(!m)return; h+=`<div class="problem-card"><div class="match-medal"><span style="font-size:20px;">${e}</span> <b>${Math.round(m.score*100)}%</b> 相契</div><div style="margin:6px 0;color:var(--ink-dim);font-size:13px;">${m.reason}</div><div style="font-size:13px;">📲 ${m.contact}</div><div style="display:flex;gap:6px;margin-top:8px;"><button class="btn btn-primary btn-sm" onclick="matchC('${m.matched_id}')">连 接</button><button class="btn btn-ghost btn-sm" style="margin-top:0;" onclick="matchI('${m.matched_id}')">换 之</button></div></div>`; }); el.innerHTML=h; }); }
+function matchC(id){ api(API+'/api/match/'+matchUserId+'/connect',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({matched_id:id})}).then(()=>toast('已 连 接','success')); }
 function matchI(id){ api(API+'/api/match/'+matchUserId+'/ignore',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({matched_id:id})}).then(()=>loadMR()); }
 
 // ─── 刷题 ───
 function quizStart(){
-    if(!quizUser){ toast('请先注册或登录','error'); showPage('quiz-register'); return; }
+    if(!quizUser){ toast('请 先 注 册','error'); showPage('quiz-register'); return; }
     showPage('quiz-solving');
-    document.getElementById('quiz-solving-content').innerHTML='<div class="empty"><div class="spinner"></div> 抽题中...</div>';
-    api(API+'/api/problems/random?user_id='+quizUser.id).then(p => renderProblem(p)).catch(()=>{document.getElementById('quiz-solving-content').innerHTML='<div class="empty"><p>加载失败</p><button class="btn btn-secondary" onclick="showPage(\'quiz-home\')">← 返回</button></div>';});
+    document.getElementById('quiz-solving-content').innerHTML='<div class="empty"><div class="spinner"></div> 拈 题 中……</div>';
+    api(API+'/api/problems/random?user_id='+quizUser.id).then(p => renderProblem(p)).catch(()=>{document.getElementById('quiz-solving-content').innerHTML='<div class="empty"><p>未 能 取 题</p><button class="btn btn-ghost" onclick="showPage(\'quiz-home\')">← 返回</button></div>';});
 }
 function renderProblem(p){
-    if(!p||!p.id){ document.getElementById('quiz-solving-content').innerHTML='<div class="empty"><p>题库为空，去导入几道题吧</p><button class="btn btn-accent btn-sm" onclick="showPage(\'quiz-import\')">📥 导入</button><button class="btn btn-secondary btn-sm" onclick="showPage(\'quiz-home\')">← 返回</button></div>';return; }
+    if(!p||!p.id){ document.getElementById('quiz-solving-content').innerHTML='<div class="empty"><p>题 库 尚 空</p><button class="btn btn-accent btn-sm" onclick="showPage(\'quiz-import\')">入 题</button><button class="btn btn-ghost btn-sm" onclick="showPage(\'quiz-home\')">← 返回</button></div>';return; }
     const stars='⭐'.repeat(p.difficulty||1);
     const tags=(p.tags||[]).map(t=>`<span class="tag tag-green">${t}</span>`).join('');
-    let h=`<div class="problem-card"><span class="tag tag-purple">${p.subject}</span> <span class="tag tag-orange">${stars}</span> ${tags}<h3>${p.title}</h3><div class="problem-content">${p.content}</div>${p.solution?`<details style="margin-top:12px;cursor:pointer;"><summary style="color:var(--accent);font-weight:600;">📖 查看解析</summary><div class="problem-content" style="margin-top:8px;">${p.solution}</div></details>`:''}</div><div style="display:flex;gap:8px;"><button class="btn btn-primary" style="flex:1;" onclick="markAnswer(${p.id},'correct')">✓ 做对了</button><button class="btn btn-accent" style="flex:1;" onclick="markAnswer(${p.id},'wrong')">✗ 做错了</button></div><button class="btn btn-secondary" onclick="quizStart()">下一题 →</button><button class="btn btn-secondary" onclick="showPage('quiz-home')">← 返回</button>`;
+    let h=`<div class="problem-card"><span class="tag tag-purple">${p.subject}</span> <span class="tag tag-orange">${stars}</span> ${tags}<h3>${p.title}</h3><div class="problem-content">${p.content}</div>${p.solution?`<details style="margin-top:12px;"><summary>📖 题 解</summary><div class="problem-content" style="margin-top:8px;">${p.solution}</div></details>`:''}</div><div style="display:flex;gap:8px;"><button class="btn btn-primary" style="flex:1;" onclick="markAnswer(${p.id},'correct')">✓ 已 解</button><button class="btn btn-accent" style="flex:1;" onclick="markAnswer(${p.id},'wrong')">✗ 未 解</button></div><button class="btn btn-secondary" onclick="quizStart()">次 题</button><button class="btn btn-ghost" onclick="showPage('quiz-home')">← 返回</button>`;
     document.getElementById('quiz-solving-content').innerHTML=h;
     renderMath(document.getElementById('quiz-solving-content'));
 }
 function markAnswer(pid, status){
     if(!quizUser)return;
-    const reason = status==='wrong' ? (prompt("错因（粗心/没思路/不会）：","不会")||"不会") : "";
-    api(API+'/api/problems/answer',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({user_id:quizUser.id,problem_id:pid,status,wrong_reason:reason})}).then(()=>{toast(status==='correct'?'✅ 已记录':'📌 已收入错题本',status==='correct'?'success':''); quizStart();});
+    const reason = status==='wrong' ? (prompt("未 解 之 由（疏/茫/不 会）：","不 会")||"不 会") : "";
+    api(API+'/api/problems/answer',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({user_id:quizUser.id,problem_id:pid,status,wrong_reason:reason})}).then(()=>{toast(status==='correct'?'✓ 已 录':'📌 入 错 题 录',status==='correct'?'success':''); quizStart();});
 }
 function loadWrongProblems(){
     if(!quizUser)return;
     showPage('quiz-wrong');
     api(API+'/api/user/'+quizUser.id+'/wrong-problems').then(data=>{
         const el=document.getElementById('wrong-list');
-        if(!data.length){el.innerHTML='<div class="empty"><p>还没有错题 🎉</p></div>';return;}
-        el.innerHTML=data.map(r=>`<div class="problem-card card-sm"><span class="tag tag-purple">${r.subject}</span> <span class="tag tag-orange">⭐${r.difficulty}</span> <span class="tag" style="background:rgba(239,68,68,0.1);color:#fca5a5;">${r.wrong_reason||'未标注'}</span><h3 style="font-size:14px;margin:6px 0;">${r.title}</h3><div style="font-size:12px;color:var(--text-dim);">${(r.attempted_at||'').slice(0,10)}</div></div>`).join('');
+        if(!data.length){el.innerHTML='<div class="empty"><p class="serif">尚 无 错 题 ✦</p></div>';return;}
+        el.innerHTML=data.map(r=>`<div class="problem-card card-sm"><span class="tag tag-purple">${r.subject}</span> <span class="tag tag-orange">⭐${r.difficulty}</span> <span class="tag" style="background:rgba(160,82,79,0.08);color:var(--rose);">${r.wrong_reason||'未 注'}</span><h3 style="font-size:14px;margin:6px 0;">${r.title}</h3><div style="font-size:12px;color:var(--ink-dim);">${(r.attempted_at||'').slice(0,10)}</div></div>`).join('');
     });
 }
 function importSingle(){
@@ -439,56 +552,56 @@ function importSingle(){
     const difficulty=parseInt(document.getElementById('imp-difficulty').value);
     const tags=document.getElementById('imp-tags').value.split(/[,，]/).map(s=>s.trim()).filter(Boolean);
     const solution=document.getElementById('imp-solution').value.trim();
-    if(!title||!content||!subject||!difficulty){ toast('请填写标题、内容、科目、难度','error'); return; }
+    if(!title||!content||!subject||!difficulty){ toast('请 补 全 题 名、题 文、科 目、难 度','error'); return; }
     const btn=document.getElementById('btn-import-single');
-    btn.disabled=true; btn.textContent='添加中...';
+    btn.disabled=true; btn.textContent='……';
     fetch(API+'/api/import-problem',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({title,content,subject,difficulty,tags,solution})})
         .then(r=>r.json()).then(d=>{
-            if(d.detail){ toast(d.detail,'error'); btn.disabled=false; btn.textContent='添加题目'; return; }
-            toast('✅ 题目已添加','success');
+            if(d.detail){ toast(d.detail,'error'); btn.disabled=false; btn.textContent='入 题'; return; }
+            toast('✓ 已 入 题','success');
             document.getElementById('imp-title').value=''; document.getElementById('imp-content').value='';
             document.getElementById('imp-solution').value=''; document.getElementById('imp-tags').value='';
-            btn.disabled=false; btn.textContent='添加题目';
-        }).catch(e=>{ toast('导入失败','error'); btn.disabled=false; btn.textContent='添加题目'; });
+            btn.disabled=false; btn.textContent='入 题';
+        }).catch(e=>{ toast('入 题 失 败','error'); btn.disabled=false; btn.textContent='入 题'; });
 }
 function importJson(){
     const raw=document.getElementById('imp-json').value.trim();
-    if(!raw){ toast('请粘贴 JSON','error'); return; }
+    if(!raw){ toast('请 贴 入 JSON','error'); return; }
     let data;
-    try { data=JSON.parse(raw); } catch(e){ toast('JSON 格式错误','error'); return; }
-    if(!Array.isArray(data)){ toast('JSON 应为数组','error'); return; }
+    try { data=JSON.parse(raw); } catch(e){ toast('JSON 格 式 有 误','error'); return; }
+    if(!Array.isArray(data)){ toast('JSON 应 为 数 组','error'); return; }
     const btn=document.getElementById('btn-import-json');
-    btn.disabled=true; btn.textContent=`导入中 (${data.length}道)...`;
+    btn.disabled=true; btn.textContent=`入 ${data.length} 题……`;
     fetch(API+'/api/import-problems-batch',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)})
         .then(r=>r.json()).then(d=>{
-            if(d.detail){ toast(d.detail,'error'); btn.disabled=false; btn.textContent='批量导入'; return; }
-            toast(`✅ 成功导入 ${d.count} 道题`,'success');
+            if(d.detail){ toast(d.detail,'error'); btn.disabled=false; btn.textContent='批量添入'; return; }
+            toast(`✓ 已 入 ${d.count} 题`,'success');
             document.getElementById('imp-json').value='';
-            btn.disabled=false; btn.textContent='批量导入';
-        }).catch(e=>{ toast('导入失败','error'); btn.disabled=false; btn.textContent='批量导入'; });
+            btn.disabled=false; btn.textContent='批量添入';
+        }).catch(e=>{ toast('入 题 失 败','error'); btn.disabled=false; btn.textContent='批量添入'; });
 }
 function doRegister(){
     const email=document.getElementById('reg-email').value.trim();
     const password=document.getElementById('reg-password').value.trim();
     const nickname=document.getElementById('reg-nickname').value.trim();
-    if(!email||!password){ toast('请填写邮箱和密码','error'); return; }
-    if(password.length<6){ toast('密码至少6位','error'); return; }
+    if(!email||!password){ toast('请 填 写 邮 箱 与 密 码','error'); return; }
+    if(password.length<6){ toast('密 码 至 少 六 位','error'); return; }
     const btn=document.getElementById('btn-register');
-    api(API+'/api/register',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email,password,nickname}),btn, _origText:'注册'}).then(d=>{
+    api(API+'/api/register',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email,password,nickname}),btn, _origText:'注 册'}).then(d=>{
         quizUser={id:d.id,email:d.email,nickname:nickname||email.split('@')[0]};
         localStorage.setItem('quiz_user',JSON.stringify(quizUser));
-        toast('注册成功！','success'); showPage('quiz-home');
+        toast('注 册 已 成','success'); showPage('quiz-home');
     });
 }
 function doLogin(){
     const email=document.getElementById('login-email').value.trim();
     const password=document.getElementById('login-password').value.trim();
-    if(!email||!password){ toast('请填写邮箱和密码','error'); return; }
+    if(!email||!password){ toast('请 填 写 邮 箱 与 密 码','error'); return; }
     const btn=document.getElementById('btn-login');
-    api(API+'/api/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email,password}),btn, _origText:'登录'}).then(d=>{
+    api(API+'/api/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email,password}),btn, _origText:'登 入'}).then(d=>{
         quizUser={id:d.id,email:d.email,nickname:d.nickname};
         localStorage.setItem('quiz_user',JSON.stringify(quizUser));
-        toast('登录成功！','success'); showPage('quiz-home');
+        toast('登 入 已 成','success'); showPage('quiz-home');
     });
 }
 </script>
