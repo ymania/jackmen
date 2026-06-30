@@ -56,7 +56,7 @@ if _IS_PG:
 
     def _pg_execute(sql, params):
         conn = _pg_get_conn()
-        cur = conn.cursor()
+        cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
         cur.execute(sql, params)
         upper = sql.strip().upper()
         if upper.startswith("SELECT"):
