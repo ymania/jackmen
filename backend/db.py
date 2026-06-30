@@ -182,7 +182,7 @@ class _SQLiteDB:
 
 # ══════════════════════ 导出 ══════════════════════
 if _IS_PG:
-    _pg_get_conn()
+    # 懒连接：不在 import 时连 PG，否则连接失败会炸掉整个应用（连 /health 都起不来）
     db = type('PgDB', (), {'table': lambda s, n: _TableProxy(None, n)})()
 else:
     db = _SQLiteDB()

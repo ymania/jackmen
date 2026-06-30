@@ -11,7 +11,7 @@ from datetime import date
 from fastapi import FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
 
-from db import db
+from db import db, _IS_PG
 from match import match as run_match
 from models import (
     QuizSubmit, MatchResponse, MatchItem, PoolInfo,
@@ -41,7 +41,7 @@ def _parse_tags(item: dict) -> dict:
 # ══════════════════════ 健康 ══════════════════════
 @app.get("/health")
 def health():
-    return {"status": "ok", "db": "sqlite"}
+    return {"status": "ok", "db": "postgresql" if _IS_PG else "sqlite"}
 
 
 # ══════════════════════ 一、匹配系统 ══════════════════════
