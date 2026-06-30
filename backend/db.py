@@ -33,24 +33,26 @@ if _IS_PG:
 
     def _pg_init_schema(conn):
         cur = conn.cursor()
-        cur.execute("""
-            CREATE TABLE IF NOT EXISTS users (id TEXT PRIMARY KEY, role TEXT NOT NULL, answers JSONB NOT NULL, contact TEXT NOT NULL, created_at TIMESTAMPTZ DEFAULT NOW());
-            CREATE TABLE IF NOT EXISTS notifications (id SERIAL PRIMARY KEY, user_id TEXT NOT NULL, from_id TEXT NOT NULL, from_contact TEXT, from_role TEXT, message TEXT NOT NULL, read BOOLEAN DEFAULT FALSE, created_at TIMESTAMPTZ DEFAULT NOW());
-            CREATE INDEX IF NOT EXISTS idx_nf ON notifications(user_id, read);
-            CREATE TABLE IF NOT EXISTS connections (id SERIAL PRIMARY KEY, user_id TEXT NOT NULL, matched_id TEXT NOT NULL, status TEXT NOT NULL, created_at TIMESTAMPTZ DEFAULT NOW(), UNIQUE(user_id, matched_id));
-            CREATE TABLE IF NOT EXISTS math_users (id TEXT PRIMARY KEY, email TEXT UNIQUE NOT NULL, password_hash TEXT NOT NULL, nickname TEXT DEFAULT '', membership TEXT DEFAULT 'free', membership_expires_at TIMESTAMPTZ, created_at TIMESTAMPTZ DEFAULT NOW());
-            CREATE TABLE IF NOT EXISTS problems (id SERIAL PRIMARY KEY, title TEXT DEFAULT '', content TEXT NOT NULL, subject TEXT DEFAULT '', difficulty INT DEFAULT 1, tags JSONB DEFAULT '[]', solution TEXT DEFAULT '', source TEXT DEFAULT '', created_at TIMESTAMPTZ DEFAULT NOW());
-            CREATE TABLE IF NOT EXISTS user_problem_status (id SERIAL PRIMARY KEY, user_id TEXT NOT NULL, problem_id INT NOT NULL, status TEXT DEFAULT 'unsolved', wrong_reason TEXT DEFAULT '', marked BOOLEAN DEFAULT FALSE, attempted_at TIMESTAMPTZ DEFAULT NOW(), UNIQUE(user_id, problem_id));
-            CREATE TABLE IF NOT EXISTS forum_categories (id SERIAL PRIMARY KEY, name TEXT UNIQUE NOT NULL, slug TEXT UNIQUE NOT NULL, sort_order INT DEFAULT 0);
-            CREATE TABLE IF NOT EXISTS forum_posts (id SERIAL PRIMARY KEY, category_id INT NOT NULL, user_id TEXT, title TEXT NOT NULL, content TEXT NOT NULL, created_at TIMESTAMPTZ DEFAULT NOW(), updated_at TIMESTAMPTZ DEFAULT NOW());
-            CREATE TABLE IF NOT EXISTS forum_comments (id SERIAL PRIMARY KEY, post_id INT NOT NULL, user_id TEXT, content TEXT NOT NULL, created_at TIMESTAMPTZ DEFAULT NOW());
-            CREATE TABLE IF NOT EXISTS pdf_materials (id SERIAL PRIMARY KEY, title TEXT NOT NULL, description TEXT DEFAULT '', file_url TEXT NOT NULL, category TEXT DEFAULT '', uploader_id TEXT, created_at TIMESTAMPTZ DEFAULT NOW());
-        """)
-        cur.execute("""
-            INSERT INTO forum_categories (name, slug, sort_order) VALUES
-            ('数学分析','sfx',1),('高等代数','gda',2),('常微分方程','cwe',3),('抽象代数','cxd',4),('实变函数','sbf',5),('复变函数','fbf',6),('概率与统计','glt',7),('泛函分析','fhf',8),('初等数论','cds',9),('微分几何','wfj',10),('考研真题','kyz',11),('综合交流','zhj',12)
-            ON CONFLICT (slug) DO NOTHING
-        """)
+        stmts = [
+            "CREATE TABLE IF NOT EXISTS users (id TEXT PRIMARY KEY, role TEXT NOT NULL, answers JSONB NOT NULL, contact TEXT NOT NULL, created_at TIMESTAMPTZ DEFAULT NOW())",
+            "CREATE TABLE IF NOT EXISTS notifications (id SERIAL PRIMARY KEY, user_id TEXT NOT NULL, from_id TEXT NOT NULL, from_contact TEXT, from_role TEXT, message TEXT NOT NULL, read BOOLEAN DEFAULT FALSE, created_at TIMESTAMPTZ DEFAULT NOW())",
+            "CREATE INDEX IF NOT EXISTS idx_nf ON notifications(user_id, read)",
+            "CREATE TABLE IF NOT EXISTS connections (id SERIAL PRIMARY KEY, user_id TEXT NOT NULL, matched_id TEXT NOT NULL, status TEXT NOT NULL, created_at TIMESTAMPTZ DEFAULT NOW(), UNIQUE(user_id, matched_id))",
+            "CREATE TABLE IF NOT EXISTS math_users (id TEXT PRIMARY KEY, email TEXT UNIQUE NOT NULL, password_hash TEXT NOT NULL, nickname TEXT DEFAULT '', membership TEXT DEFAULT 'free', membership_expires_at TIMESTAMPTZ, created_at TIMESTAMPTZ DEFAULT NOW())",
+            "CREATE TABLE IF NOT EXISTS problems (id SERIAL PRIMARY KEY, title TEXT DEFAULT '', content TEXT NOT NULL, subject TEXT DEFAULT '', difficulty INT DEFAULT 1, tags JSONB DEFAULT '[]', solution TEXT DEFAULT '', source TEXT DEFAULT '', created_at TIMESTAMPTZ DEFAULT NOW())",
+            "CREATE TABLE IF NOT EXISTS user_problem_status (id SERIAL PRIMARY KEY, user_id TEXT NOT NULL, problem_id INT NOT NULL, status TEXT DEFAULT 'unsolved', wrong_reason TEXT DEFAULT '', marked BOOLEAN DEFAULT FALSE, attempted_at TIMESTAMPTZ DEFAULT NOW(), UNIQUE(user_id, problem_id))",
+            "CREATE TABLE IF NOT EXISTS forum_categories (id SERIAL PRIMARY KEY, name TEXT UNIQUE NOT NULL, slug TEXT UNIQUE NOT NULL, sort_order INT DEFAULT 0)",
+            "CREATE TABLE IF NOT EXISTS forum_posts (id SERIAL PRIMARY KEY, category_id INT NOT NULL, user_id TEXT, title TEXT NOT NULL, content TEXT NOT NULL, created_at TIMESTAMPTZ DEFAULT NOW(), updated_at TIMESTAMPTZ DEFAULT NOW())",
+            "CREATE TABLE IF NOT EXISTS forum_comments (id SERIAL PRIMARY KEY, post_id INT NOT NULL, user_id TEXT, content TEXT NOT NULL, created_at TIMESTAMPTZ DEFAULT NOW())",
+            "CREATE TABLE IF NOT EXISTS pdf_materials (id SERIAL PRIMARY KEY, title TEXT NOT NULL, description TEXT DEFAULT '', file_url TEXT NOT NULL, category TEXT DEFAULT '', uploader_id TEXT, created_at TIMESTAMPTZ DEFAULT NOW())",
+        ]
+        for s in stmts:
+            cur.execute(s)
+        cur.execute(
+            "INSERT INTO forum_categories (name, slug, sort_order) VALUES "
+            "('数学分析','sfx',1),('高等代数','gda',2),('常微分方程','cwe',3),('抽象代数','cxd',4),('实变函数','sbf',5),('复变函数','fbf',6),('概率与统计','glt',7),('泛函分析','fhf',8),('初等数论','cds',9),('微分几何','wfj',10),('考研真题','kyz',11),('综合交流','zhj',12) "
+            "ON CONFLICT (slug) DO NOTHING"
+        )
 
     def _pg_execute(sql, params):
         conn = _pg_get_conn()
