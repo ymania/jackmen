@@ -75,9 +75,15 @@ class _PgRow:
         return iter(self._d.values())
 
 def _parse_tags(item: dict) -> dict:
-    try:
-        item["tags"] = json.loads(item.get("tags", "[]"))
-    except (json.JSONDecodeError, TypeError):
+    tags = item.get("tags", [])
+    if isinstance(tags, list):
+        item["tags"] = tags
+    elif isinstance(tags, str):
+        try:
+            item["tags"] = json.loads(tags)
+        except (json.JSONDecodeError, TypeError):
+            item["tags"] = []
+    else:
         item["tags"] = []
     return item
 
