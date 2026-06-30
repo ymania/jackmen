@@ -43,6 +43,21 @@ def _parse_tags(item: dict) -> dict:
 def health():
     return {"status": "ok", "db": "postgresql" if _IS_PG else "sqlite"}
 
+@app.get("/debug")
+def debug_pg():
+    """临时调试端点 — 测试 PG 连接"""
+    if not _IS_PG:
+        return {"pg": False, "reason": "DATABASE_URL not set"}
+    try:
+        from db import _pg_get_conn, DATABASE_URL as PG_URL
+        conn = _pg_get_conn()
+        cur = conn.cursor()
+        cur.execute("SELECT 1 AS test")
+        row = cur.fetchone()
+        return {"pg": True, "test": dict(row), "url_prefix": PG_URL[:30] if PG_URL else "none"}
+    except Exception as e:
+        return {"pg": False, "error": str(e), "type": type(e).__name__}
+
 
 # ══════════════════════ 一、匹配系统 ══════════════════════
 
