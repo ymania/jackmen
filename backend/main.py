@@ -12,6 +12,8 @@ from fastapi import FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
 
 from db import db, _IS_PG
+if _IS_PG:
+    from db import _pg_get_conn
 from match import match as run_match
 from models import (
     QuizSubmit, MatchResponse, MatchItem, PoolInfo,
@@ -28,7 +30,49 @@ def _hash(s: str) -> str:
     return hashlib.sha256(s.encode()).hexdigest()
 
 def _conn():
+    """返回统一连接 — PG 下自动转换 ? 占位符为 %s"""
+    if _IS_PG:
+        return _PgConn()
     return db._conn
+
+class _PgConn:
+    """PG 连接包装器，模拟 sqlite3.Connection 接口"""
+    def execute(self, sql, params=None):
+        import psycopg2.extras
+        conn = _pg_get_conn()
+        sql = sql.replace("?", "%s")
+        # SQLite 特有语法转换
+        sql = sql.replace("ORDER BY RANDOM()", "ORDER BY RANDOM()")
+        cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+        cur.execute(sql, params or [])
+        return _PgCursor(cur)
+    def commit(self):
+        pass  # autocommit=True 不需要手动 commit
+
+class _PgCursor:
+    def __init__(self, cur):
+        self._cur = cur
+    def fetchone(self):
+        row = self._cur.fetchone()
+        return _PgRow(row) if row else None
+    def fetchall(self):
+        return [_PgRow(r) for r in self._cur.fetchall()]
+    @property
+    def lastrowid(self):
+        # 需要在 INSERT 时加 RETURNING id
+        return None
+
+class _PgRow:
+    def __init__(self, d):
+        self._d = d
+    def __getitem__(self, key):
+        if isinstance(key, int):
+            return list(self._d.values())[key]
+        return self._d[key]
+    def keys(self):
+        return self._d.keys()
+    def __iter__(self):
+        return iter(self._d.values())
 
 def _parse_tags(item: dict) -> dict:
     try:
@@ -42,21 +86,6 @@ def _parse_tags(item: dict) -> dict:
 @app.get("/health")
 def health():
     return {"status": "ok", "db": "postgresql" if _IS_PG else "sqlite"}
-
-@app.get("/debug")
-def debug_pg():
-    """临时调试端点 — 测试 PG 连接"""
-    if not _IS_PG:
-        return {"pg": False, "reason": "DATABASE_URL not set"}
-    try:
-        from db import _pg_get_conn, DATABASE_URL as PG_URL
-        conn = _pg_get_conn()
-        cur = conn.cursor()
-        cur.execute("SELECT 1 AS test")
-        row = cur.fetchone()
-        return {"pg": True, "test": dict(row), "url_prefix": PG_URL[:30] if PG_URL else "none"}
-    except Exception as e:
-        return {"pg": False, "error": str(e), "type": type(e).__name__}
 
 
 # ══════════════════════ 一、匹配系统 ══════════════════════
@@ -352,10 +381,17 @@ class _ImportProblem(_BM):
 @app.post("/api/import-problem")
 def import_problem(body: _ImportProblem):
     conn = _conn()
-    conn.execute("INSERT INTO problems (title, content, subject, difficulty, tags, solution) VALUES (?,?,?,?,?,?)",
-                 [body.title, body.content, body.subject, body.difficulty, json.dumps(body.tags), body.solution])
-    conn.commit()
-    return {"ok": True, "id": conn.execute("SELECT last_insert_rowid()").fetchone()[0]}
+    if _IS_PG:
+        cur = conn.execute(
+            "INSERT INTO problems (title, content, subject, difficulty, tags, solution) VALUES (?,?,?,?,?,?) RETURNING id",
+            [body.title, body.content, body.subject, body.difficulty, json.dumps(body.tags), body.solution])
+        row = cur.fetchone()
+        return {"ok": True, "id": row["id"] if row else None}
+    else:
+        conn.execute("INSERT INTO problems (title, content, subject, difficulty, tags, solution) VALUES (?,?,?,?,?,?)",
+                     [body.title, body.content, body.subject, body.difficulty, json.dumps(body.tags), body.solution])
+        conn.commit()
+        return {"ok": True, "id": conn.execute("SELECT last_insert_rowid()").fetchone()[0]}
 
 
 @app.post("/api/import-problems-batch")
@@ -363,8 +399,12 @@ def import_problems_batch(body: list[_ImportProblem]):
     conn = _conn()
     count = 0
     for p in body:
-        conn.execute("INSERT INTO problems (title, content, subject, difficulty, tags, solution) VALUES (?,?,?,?,?,?)",
-                     [p.title, p.content, p.subject, p.difficulty, json.dumps(p.tags), p.solution])
+        if _IS_PG:
+            conn.execute("INSERT INTO problems (title, content, subject, difficulty, tags, solution) VALUES (?,?,?,?,?,?)",
+                         [p.title, p.content, p.subject, p.difficulty, json.dumps(p.tags), p.solution])
+        else:
+            conn.execute("INSERT INTO problems (title, content, subject, difficulty, tags, solution) VALUES (?,?,?,?,?,?)",
+                         [p.title, p.content, p.subject, p.difficulty, json.dumps(p.tags), p.solution])
         count += 1
     conn.commit()
     return {"ok": True, "count": count}
