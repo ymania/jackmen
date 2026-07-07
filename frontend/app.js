@@ -2,7 +2,7 @@
  * jack门 — 前端逻辑 v0.3
  */
 
-const API = "http://localhost:8000";
+const API = "https://jackmen-production.up.railway.app";
 const MATCH_API = API + "/api/match";
 
 let role = null;
