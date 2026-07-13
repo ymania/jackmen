@@ -451,7 +451,7 @@ def plan_get(plan_id: int):
     return {"plan":{"id":row[0],"title":row[1],"description":row[2],"subject":row[3]},
             "problems":parsed}
 
-# ══════════════════════ 追加：训练计划 + 评级系统 ══════════════════════
+# ══════════════════════ 追加：训练计划 + 评级系统 + 评论区 ══════════════════════
 
 from pydantic import BaseModel as _BM2
 
@@ -525,3 +525,49 @@ def user_profile(user_id: str):
     u = conn.execute("SELECT id, nickname, rating, exp, solved_count, created_at FROM math_users WHERE id=?", [user_id]).fetchone()
     if not u: raise HTTPException(404)
     return {"id":u[0],"nickname":u[1] or u[0][:8],"rating":u[2],"exp":u[3],"solved":u[4],"created_at":u[5]}
+
+# ══════════════════════ 问题评论区 ══════════════════════
+
+@app.get("/api/problems/{problem_id}/comments")
+def problem_comments(problem_id: int):
+    conn = _conn()
+    rows = conn.execute("""SELECT pc.id, pc.content, COALESCE(mu.nickname, mu.id, '匿名'), pc.created_at
+        FROM problem_comments pc LEFT JOIN math_users mu ON pc.user_id=mu.id
+        WHERE pc.problem_id=? ORDER BY pc.created_at""", [problem_id]).fetchall()
+    return [{"id":r[0],"content":r[1],"user_nickname":r[2],"created_at":r[3]} for r in rows]
+
+@app.post("/api/problems/{problem_id}/comments")
+def problem_comment_create(problem_id: int, body: dict):
+    user_id = body.get("user_id")
+    content = body.get("content","").strip()
+    if not user_id or not content: raise HTTPException(400, "缺少 user_id 或 content")
+    conn = _conn()
+    conn.execute("INSERT INTO problem_comments (problem_id, user_id, content) VALUES (?,?,?)",
+                 [problem_id, user_id, content])
+    conn.commit()
+    return {"ok": True}
+
+# ══════════════════════ 编程题模板（预留 judge0 API 集成点） ══════════════════════
+
+@app.post("/api/code-submit")
+def code_submit(body: dict):
+    """提交编程题答案。目前只存代码+语言，不入判题队列。
+    后续接 judge0: POST /submissions?base64_encoded=false&wait=true"""
+    problem_id = body.get("problem_id")
+    user_id = body.get("user_id")
+    code = body.get("code", "")
+    language = body.get("language", "python")
+    if not all([problem_id, user_id, code]): raise HTTPException(400, "缺少参数")
+    conn = _conn()
+    conn.execute("INSERT INTO code_submissions (problem_id, user_id, code, language, status) VALUES (?,?,?,?,'pending')",
+                 [problem_id, user_id, code, language])
+    conn.commit()
+    return {"ok": True, "message": "代码已提交，待判题"}
+
+@app.get("/api/code-submissions/{user_id}")
+def code_submissions(user_id: str):
+    conn = _conn()
+    rows = conn.execute("""SELECT cs.id, cs.problem_id, cs.language, cs.status, cs.created_at,
+        p.title FROM code_submissions cs JOIN problems p ON cs.problem_id=p.id
+        WHERE cs.user_id=? ORDER BY cs.created_at DESC LIMIT 20""", [user_id]).fetchall()
+    return [{"id":r[0],"problem_id":r[1],"language":r[2],"status":r[3],"created_at":r[4],"problem_title":r[5]} for r in rows]

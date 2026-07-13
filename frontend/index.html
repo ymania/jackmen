@@ -648,13 +648,44 @@ function loadProblemList(page){
 function showProblemDetail(id){
     if(!quizUser){ toast('请先登录','error'); return; }
     showPage('quiz-solving');
-    fetch(API+'/api/problems/'+id).then(r=>r.json()).then(p=>{
+    Promise.all([
+        fetch(API+'/api/problems/'+id).then(r=>r.json()),
+        fetch(API+'/api/problems/'+id+'/comments').then(r=>r.json())
+    ]).then(([p, comments])=>{
         const stars='⭐'.repeat(p.difficulty||1);
         const tags=(p.tags||[]).map(t=>`<span class=\"tag tag-green\">${t}</span>`).join('');
-        let h=`<div class=\"problem-card\"><span class=\"tag tag-purple\">${p.subject}</span> <span class=\"tag tag-orange\">${stars}</span> ${tags}<h3>${p.title}</h3><div class=\"problem-content\">${p.content}</div>${p.solution?`<details style=\"margin-top:12px;\"><summary>📖 查看解析</summary><div class=\"problem-content\" style=\"margin-top:8px;\">${p.solution}</div></details>`:''}</div><div style=\"display:flex;gap:8px;\"><button class=\"btn btn-primary\" style=\"flex:1;\" onclick=\"markAnswer(${p.id},'correct')\">✓ 做对了</button><button class=\"btn btn-accent\" style=\"flex:1;\" onclick=\"markAnswer(${p.id},'wrong')\">✗ 做错了</button></div><button class=\"btn btn-ghost\" onclick=\"showPage('quiz-list');loadProblemList(listPage)\">← 返回列表</button>`;
+        let h=`<div class=\"problem-card\"><span class=\"tag tag-purple\">${p.subject}</span> <span class=\"tag tag-orange\">${stars}</span> ${tags}<h3>${p.title}</h3><div class=\"problem-content\">${p.content}</div>${p.solution?`<details style=\"margin-top:12px;\"><summary>📖 查看解析</summary><div class=\"problem-content\" style=\"margin-top:8px;\">${p.solution}</div></details>`:''}</div><div style=\"display:flex;gap:8px;\"><button class=\"btn btn-primary\" style=\"flex:1;\" onclick=\"markAnswer(${p.id},'correct')\">✓ 做对了</button><button class=\"btn btn-accent\" style=\"flex:1;\" onclick=\"markAnswer(${p.id},'wrong')\">✗ 做错了</button></div>`;
+        // ─── 评论区 ───
+        let ch=comments.map(c=>`<div style=\"padding:10px 0;border-bottom:1px solid var(--border);\"><div style=\"font-size:12px;color:var(--ink-dim);\">${c.user_nickname} · ${(c.created_at||'').slice(0,10)}</div><div style=\"margin-top:4px;font-size:14px;\">${c.content}</div></div>`).join('');
+        // ─── 如果是编程题，加代码提交区 ───
+        let codeHtml='';
+        if(p.subject==='编程'){
+            const languages=['python','javascript','java','cpp','go','rust'];
+            codeHtml=`<div style=\"margin-top:16px;padding-top:16px;border-top:1px solid var(--border);\">
+                <h4 style=\"font-size:15px;font-weight:700;margin-bottom:8px;\">💻 提交代码</h4>
+                <select class=\"select\" id=\"code-lang-${p.id}\" style=\"margin-bottom:8px;\">${languages.map(l=>'<option value=\"'+l+'\">'+l+'</option>').join('')}</select>
+                <textarea class=\"textarea\" id=\"code-input-${p.id}\" placeholder=\"// 写代码...\" style=\"font-family:monospace;min-height:150px;\"></textarea>
+                <button class=\"btn btn-accent\" onclick=\"submitCode(${p.id})\">提交</button>
+            </div>\`;  // 闭合 codeHtml
+        h+=codeHtml;
+        h+=`<button class=\"btn btn-ghost\" onclick=\"showPage('quiz-list');loadProblemList(listPage)\" style=\"margin-top:8px;\">← 返回列表</button>`;
         document.getElementById('quiz-solving-content').innerHTML=h;
         renderMath(document.getElementById('quiz-solving-content'));
     });
+}
+function postComment(problemId){
+    const input=document.getElementById('comment-input-'+problemId);
+    const content=input.value.trim();
+    if(!content||!quizUser)return;
+    fetch(API+'/api/problems/'+problemId+'/comments',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({user_id:quizUser.id,content})})
+        .then(r=>r.json()).then(()=>{toast('已发布','success');showProblemDetail(problemId);}).catch(()=>toast('发送失败','error'));
+}
+function submitCode(problemId){
+    const code=document.getElementById('code-input-'+problemId).value;
+    const lang=document.getElementById('code-lang-'+problemId).value;
+    if(!code||!quizUser){toast('请写代码','error');return;}
+    fetch(API+'/api/code-submit',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({problem_id:problemId,user_id:quizUser.id,code,language:lang})})
+        .then(r=>r.json()).then(d=>{toast('代码已提交','success');}).catch(()=>toast('提交失败','error'));
 }
 
 // ─── 训练营 ───
