@@ -318,6 +318,11 @@ details summary {
 <!-- ══════════════════════ 刷题 ══════════════════════ -->
 <div class="page" id="page-quiz-home">
     <h2 style="margin-bottom:14px;font-size:19px;font-weight:700;">📝 刷题训练</h2>
+    <div class="entrance-card" onclick="showPage('quiz-list')" style="margin-bottom:8px;">
+        <span class="e-icon">📋</span>
+        <div class="e-title">题目列表</div>
+        <div class="e-desc">按科目/难度浏览，搜题</div>
+    </div>
     <div class="entrance-card" onclick="quizStart()" style="margin-bottom:8px;">
         <span class="e-icon">🎲</span>
         <div class="e-title">随机一题</div>
@@ -332,6 +337,16 @@ details summary {
         <span class="e-icon">📥</span>
         <div class="e-title">导入题目</div>
         <div class="e-desc">手动添加或 JSON 批量导入</div>
+    </div>
+    <div class="entrance-card" onclick="showPage('plans')" style="margin-bottom:8px;">
+        <span class="e-icon">🗺️</span>
+        <div class="e-title">训练营</div>
+        <div class="e-desc">按路线图刷题，系统进阶</div>
+    </div>
+    <div class="entrance-card" onclick="loadLeaderboard()" style="margin-bottom:8px;">
+        <span class="e-icon">🏆</span>
+        <div class="e-title">排行榜</div>
+        <div class="e-desc">看谁刷题最多、分最高</div>
     </div>
     <button class="btn btn-ghost" onclick="showPage('home')">← 返回首页</button>
 </div>
@@ -356,8 +371,51 @@ details summary {
     <button class="btn btn-ghost" onclick="showPage('quiz-home')">← 返回</button>
 </div>
 
-<div class="page" id="page-quiz-solving">
-    <div id="quiz-solving-content"></div>
+<div class="page" id="page-quiz-list">
+    ...
+</div>
+
+<div class="page" id="page-plans">
+    <h2 style="margin-bottom:14px;font-size:19px;font-weight:700;">🗺️ 训练营</h2>
+    <div id="plans-list"></div>
+    <button class="btn btn-ghost" onclick="showPage('quiz-home')">← 返回</button>
+</div>
+
+<div class="page" id="page-plan-detail">
+    <div id="plan-detail-content"></div>
+    <button class="btn btn-ghost" onclick="showPage('plans')">← 返回列表</button>
+</div>
+
+<div class="page" id="page-leaderboard">
+    <h2 style="margin-bottom:14px;font-size:19px;font-weight:700;">🏆 排行榜</h2>
+    <div id="leaderboard-content"><div class="empty"><div class="spinner"></div></div></div>
+    <button class="btn btn-ghost" onclick="showPage('quiz-home')">← 返回</button>
+</div>
+
+<div class="page" id="page-quiz-list">
+    <div style="margin-bottom:14px;">
+        <div class="field-row" style="margin-bottom:8px;">
+            <select class="select" id="list-subject" onchange="loadProblemList(1)">
+                <option value="">全部科目</option>
+                <option>数学分析</option><option>高等代数</option><option>常微分方程</option>
+                <option>概率论与数理统计</option><option>抽象代数</option><option>实变函数</option>
+                <option>复变函数</option><option>泛函分析</option><option>微分几何</option>
+                <option>初等数论</option><option>考研真题</option><option>编程</option>
+            </select>
+            <select class="select" id="list-difficulty" onchange="loadProblemList(1)">
+                <option value="">全部难度</option>
+                <option value="1">⭐</option><option value="2">⭐⭐</option><option value="3">⭐⭐⭐</option>
+                <option value="4">⭐⭐⭐⭐</option><option value="5">⭐⭐⭐⭐⭐</option>
+            </select>
+        </div>
+        <div class="field-row">
+            <input class="input" id="list-keyword" placeholder="搜索题目..." style="margin-bottom:0;flex:3;" onkeydown="if(event.key==='Enter')loadProblemList(1)">
+            <button class="btn btn-accent btn-sm" onclick="loadProblemList(1)" style="flex:1;padding:13px;text-align:center;">🔍</button>
+        </div>
+    </div>
+    <div id="problem-list"></div>
+    <div id="problem-pagination" style="display:flex;gap:8px;justify-content:center;margin-top:12px;"></div>
+    <button class="btn btn-ghost" onclick="showPage('quiz-home')">← 返回</button>
 </div>
 
 <div class="page" id="page-quiz-wrong">
@@ -551,6 +609,124 @@ function doLogin(){
         quizUser={id:d.id,email:d.email,nickname:d.nickname};
         localStorage.setItem('quiz_user',JSON.stringify(quizUser));
         toast('登录成功！','success'); showPage('quiz-home');
+    });
+}
+
+// ─── 题目列表 ───
+let listPage=1, listTotal=0;
+function loadProblemList(page){
+    listPage=page;
+    const subject=document.getElementById('list-subject').value;
+    const diff=document.getElementById('list-difficulty').value;
+    const kw=document.getElementById('list-keyword').value.trim();
+    let url=API+'/api/problems?page='+page+'&page_size=20';
+    if(subject) url+='&subject='+encodeURIComponent(subject);
+    if(diff) url+='&difficulty='+diff;
+    if(kw) url+='&keyword='+encodeURIComponent(kw);
+    fetch(url).then(r=>r.json()).then(d=>{
+        listTotal=d.total;
+        const el=document.getElementById('problem-list');
+        if(!d.data.length){el.innerHTML='<div class=\"empty\"><p>没有题目</p></div>';return;}
+        el.innerHTML=d.data.map(p=>{
+            const stars='⭐'.repeat(p.difficulty||1);
+            const tags=(p.tags||[]).map(t=>`<span class=\"tag tag-green\">${t}</span>`).join('');
+            return `<div class=\"problem-card\" style=\"cursor:pointer;\" onclick=\"showProblemDetail(${p.id})\">
+                <span class=\"tag tag-purple\">${p.subject}</span> <span class=\"tag tag-orange\">${stars}</span> ${tags}
+                <h3>${p.title}</h3>
+                <div class=\"e-desc\">${(p.content||'').slice(0,80)}</div>
+            </div>`;
+        }).join('');
+        // 分页
+        const totalPages=Math.ceil(d.total/20);
+        let pg='';
+        for(let i=Math.max(1,page-2);i<=Math.min(totalPages,page+2);i++){
+            pg+=`<button class="btn btn-sm ${i===page?'btn-primary':'btn-secondary'}" style="width:auto;" onclick="loadProblemList(${i})">${i}</button>`;
+        }
+        document.getElementById('problem-pagination').innerHTML=pg;
+    });
+}
+function showProblemDetail(id){
+    if(!quizUser){ toast('请先登录','error'); return; }
+    showPage('quiz-solving');
+    fetch(API+'/api/problems/'+id).then(r=>r.json()).then(p=>{
+        const stars='⭐'.repeat(p.difficulty||1);
+        const tags=(p.tags||[]).map(t=>`<span class=\"tag tag-green\">${t}</span>`).join('');
+        let h=`<div class=\"problem-card\"><span class=\"tag tag-purple\">${p.subject}</span> <span class=\"tag tag-orange\">${stars}</span> ${tags}<h3>${p.title}</h3><div class=\"problem-content\">${p.content}</div>${p.solution?`<details style=\"margin-top:12px;\"><summary>📖 查看解析</summary><div class=\"problem-content\" style=\"margin-top:8px;\">${p.solution}</div></details>`:''}</div><div style=\"display:flex;gap:8px;\"><button class=\"btn btn-primary\" style=\"flex:1;\" onclick=\"markAnswer(${p.id},'correct')\">✓ 做对了</button><button class=\"btn btn-accent\" style=\"flex:1;\" onclick=\"markAnswer(${p.id},'wrong')\">✗ 做错了</button></div><button class=\"btn btn-ghost\" onclick=\"showPage('quiz-list');loadProblemList(listPage)\">← 返回列表</button>`;
+        document.getElementById('quiz-solving-content').innerHTML=h;
+        renderMath(document.getElementById('quiz-solving-content'));
+    });
+}
+
+// ─── 训练营 ───
+let currentPlanId=null;
+function loadPlans(){
+    showPage('plans');
+    fetch(API+'/api/plans').then(r=>r.json()).then(d=>{
+        const el=document.getElementById('plans-list');
+        if(!d.length){el.innerHTML='<div class=\"empty\"><p>暂无训练计划</p></div>';return;}
+        el.innerHTML=d.map(p=>{
+            const pct=p.total>0?Math.round(p.done/p.total*100):0;
+            return `<div class=\"problem-card\" style=\"cursor:pointer;\" onclick=\"loadPlan(${p.id})\">
+                <span style=\"font-size:18px;font-weight:700;\">${p.title}</span>
+                <div class=\"e-desc\" style=\"margin:4px 0;\">${p.description}</div>
+                <div style=\"display:flex;justify-content:space-between;font-size:12px;color:var(--ink-dim);\">
+                    <span>${p.subject}</span>
+                    <span>${p.done}/${p.total} 题 (${pct}%)</span>
+                </div>
+                <div style=\"height:4px;background:var(--border);border-radius:2px;margin-top:6px;\">
+                    <div style=\"height:100%;width:${pct}%;background:var(--accent);border-radius:2px;\"></div>
+                </div>
+            </div>`;
+        }).join('');
+    });
+}
+function loadPlan(planId){
+    currentPlanId=planId;
+    if(!quizUser){ toast('请先登录','error'); return; }
+    showPage('plan-detail');
+    fetch(API+'/api/plans/'+planId).then(r=>r.json()).then(d=>{
+        const p=d.plan;
+        let h=`<div class=\"card\"><span class=\"tag tag-purple\">${p.subject}</span><h3 style=\"margin:10px 0;\">${p.title}</h3><div class=\"e-desc\">${p.description}</div></div>`;
+        d.problems.forEach((prob,i)=>{
+            const stars='⭐'.repeat(prob.difficulty||1);
+            const statusIcon=prob.status==='correct'?'✅':prob.status==='wrong'?'❌':'⬜';
+            h+=`<div class=\"problem-card\" style=\"cursor:pointer;\" onclick=\"showProblemDetail(${prob.id})\">
+                <div style=\"display:flex;align-items:center;gap:8px;\">
+                    <span>${statusIcon}</span>
+                    <span class=\"tag tag-purple\">${prob.subject}</span>
+                    <span class=\"tag tag-orange\">${stars}</span>
+                    <span style=\"font-size:13px;font-weight:600;\">${i+1}. ${prob.title}</span>
+                </div>
+            </div>`;
+        });
+        document.getElementById('plan-detail-content').innerHTML=h;
+    });
+}
+
+// ─── 排行榜 ───
+function loadLeaderboard(){
+    showPage('leaderboard');
+    fetch(API+'/api/leaderboard').then(r=>r.json()).then(d=>{
+        const el=document.getElementById('leaderboard-content');
+        if(!d.data.length){el.innerHTML='<div class=\"empty\"><p>暂无用户</p></div>';return;}
+        const medals=['🥇','🥈','🥉'];
+        el.innerHTML=d.data.map((u,i)=>{
+            const medal=medals[i]||'';
+            const isMe=quizUser&&quizUser.id===u.id;
+            return `<div class="problem-card" style="${isMe?'border-color:var(--accent);':''}">
+                <div style="display:flex;align-items:center;gap:8px;">
+                    <span style="font-size:20px;width:28px;text-align:center;">${medal||`#${i+1}`}</span>
+                    <div style="flex:1;">
+                        <span style="font-weight:600;">${u.nickname}</span>
+                        ${isMe?'<span class="tag tag-green" style="margin-left:4px;">你</span>':''}
+                    </div>
+                    <div style="text-align:right;">
+                        <div style="font-weight:700;color:var(--accent);">${u.rating}</div>
+                        <div style="font-size:11px;color:var(--ink-dim);">${u.solved}题 · ${u.exp}exp</div>
+                    </div>
+                </div>
+            </div>`;
+        }).join('');
     });
 }
 </script>

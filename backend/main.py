@@ -259,6 +259,7 @@ def problem_answer(body: AnswerSubmit):
     else:
         conn.execute("INSERT INTO user_problem_status (user_id,problem_id,status,wrong_reason,attempted_at) VALUES (?,?,?,?,?)", [body.user_id, body.problem_id, body.status, body.wrong_reason, now])
     conn.commit()
+    _update_rating(body.user_id, body.status)
     return {"ok": True}
 
 
@@ -414,3 +415,113 @@ def import_problems_batch(body: list[_ImportProblem]):
         count += 1
     conn.commit()
     return {"ok": True, "count": count}
+
+
+# ══════════════════════ 七、训练计划（从 Hydro Training 抄） ══════════════════════
+
+from pydantic import BaseModel as _BM2
+
+class _PlanCreate(_BM2):
+    title: str; description: str = ""; problem_ids: list[int]; subject: str = ""
+
+@app.get("/api/plans")
+def plans_list():
+    conn = _conn()
+    rows = conn.execute("""SELECT tp.id,tp.title,tp.description,tp.subject,
+        (SELECT COUNT(*) FROM plan_problems WHERE plan_id=tp.id) as total,
+        (SELECT COUNT(*) FROM plan_problems pp JOIN user_problem_status ups ON pp.problem_id=ups.problem_id
+         WHERE pp.plan_id=tp.id AND ups.user_id=?) as done
+        FROM training_plans tp ORDER BY tp.id""", [""]).fetchall()
+    return [{"id":r[0],"title":r[1],"description":r[2],"subject":r[3],"total":r[4],"done":r[5]} for r in rows]
+
+@app.get("/api/plans/{plan_id}")
+def plan_get(plan_id: int):
+    conn = _conn()
+    row = conn.execute("SELECT * FROM training_plans WHERE id=?", [plan_id]).fetchone()
+    if not row: raise HTTPException(404)
+    problems = conn.execute("""SELECT p.*, ups.status, ups.wrong_reason FROM problems p
+        JOIN plan_problems pp ON p.id=pp.problem_id
+        LEFT JOIN user_problem_status ups ON p.id=ups.problem_id AND ups.user_id=?
+        WHERE pp.plan_id=? ORDER BY pp.sort_order""", ["", plan_id]).fetchall()
+    parsed = []
+    for r in problems:
+        d = dict(r)
+        d["tags"] = json.loads(d.get("tags","[]")) if isinstance(d.get("tags"), str) else (d.get("tags") or [])
+        parsed.append(d)
+    return {"plan":{"id":row[0],"title":row[1],"description":row[2],"subject":row[3]},
+            "problems":parsed}
+
+# ══════════════════════ 追加：训练计划 + 评级系统 ══════════════════════
+
+from pydantic import BaseModel as _BM2
+
+class _PlanCreate(_BM2):
+    title: str; description: str = ""; problem_ids: list[int]; subject: str = ""
+
+@app.get("/api/plans")
+def plans_list():
+    conn = _conn()
+    rows = conn.execute("""SELECT tp.id,tp.title,tp.description,tp.subject,
+        (SELECT COUNT(*) FROM plan_problems WHERE plan_id=tp.id) as total,
+        (SELECT COUNT(*) FROM plan_problems pp JOIN user_problem_status ups ON pp.problem_id=ups.problem_id
+         WHERE pp.plan_id=tp.id AND ups.user_id=?) as done
+        FROM training_plans tp ORDER BY tp.id""", [""]).fetchall()
+    return [{"id":r[0],"title":r[1],"description":r[2],"subject":r[3],"total":r[4],"done":r[5]} for r in rows]
+
+@app.get("/api/plans/{plan_id}")
+def plan_get(plan_id: int):
+    conn = _conn()
+    row = conn.execute("SELECT * FROM training_plans WHERE id=?", [plan_id]).fetchone()
+    if not row: raise HTTPException(404)
+    problems = conn.execute("""SELECT p.*, ups.status, ups.wrong_reason FROM problems p
+        JOIN plan_problems pp ON p.id=pp.problem_id
+        LEFT JOIN user_problem_status ups ON p.id=ups.problem_id AND ups.user_id=?
+        WHERE pp.plan_id=? ORDER BY pp.sort_order""", ["", plan_id]).fetchall()
+    parsed = []
+    for r in problems:
+        d = dict(r)
+        d["tags"] = json.loads(d.get("tags","[]")) if isinstance(d.get("tags"), str) else (d.get("tags") or [])
+        parsed.append(d)
+    return {"plan":{"id":row[0],"title":row[1],"description":row[2],"subject":row[3]},
+            "problems":parsed}
+
+# ══════════════════════ 评级系统（从 DMOJ 抄 ELO-MMR） ══════════════════════
+
+RATING_INIT = 1000
+EXP_PER_SOLVE = 10
+EXP_PER_WRONG = 2
+
+def _update_rating(user_id: str, status: str):
+    conn = _conn()
+    u = conn.execute("SELECT rating, exp, solved_count FROM math_users WHERE id=?", [user_id]).fetchone()
+    if not u: return
+    rating = u[0] or RATING_INIT
+    exp = u[1] or 0
+    solved = u[2] or 0
+    if status == "correct":
+        solved += 1
+        exp += EXP_PER_SOLVE
+        gain = max(1, min(5, 20 - (rating - RATING_INIT) // 100))
+        rating += gain
+    elif status == "wrong":
+        exp += EXP_PER_WRONG
+        rating = max(RATING_INIT - 200, rating - 1)
+    conn.execute("UPDATE math_users SET rating=?, exp=?, solved_count=? WHERE id=?",
+                 [rating, exp, solved, user_id])
+    conn.commit()
+
+@app.get("/api/leaderboard")
+def leaderboard(page: int=Query(1,ge=1)):
+    conn = _conn()
+    total = conn.execute("SELECT COUNT(*) FROM math_users").fetchone()[0]
+    rows = conn.execute("""SELECT id, nickname, rating, exp, solved_count
+        FROM math_users ORDER BY rating DESC, exp DESC LIMIT 50 OFFSET ?""", [(page-1)*50]).fetchall()
+    return {"data":[{"id":r[0],"nickname":r[1] or r[0][:8],"rating":r[2],"exp":r[3],"solved":r[4]} for r in rows],
+            "total":total}
+
+@app.get("/api/user/{user_id}/profile")
+def user_profile(user_id: str):
+    conn = _conn()
+    u = conn.execute("SELECT id, nickname, rating, exp, solved_count, created_at FROM math_users WHERE id=?", [user_id]).fetchone()
+    if not u: raise HTTPException(404)
+    return {"id":u[0],"nickname":u[1] or u[0][:8],"rating":u[2],"exp":u[3],"solved":u[4],"created_at":u[5]}
